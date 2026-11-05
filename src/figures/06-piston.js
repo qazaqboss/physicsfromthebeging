@@ -105,7 +105,7 @@ FIG.piston = (el, num) => {
 
   const gCoil = ui.part("coil"), gGas = ui.part("gas"), gPiston = ui.part("piston"), gGauge = ui.part("gauge"), gDisp = ui.part("display");
   let setC = 0;
-  const st = { T: T0, tour: true, tourT: 0 };
+  const st = { T: T0, tour: true, tourT: 0, glow: 0 };
   const parts = Array.from({ length: 46 }, () => {
     const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * (R_IN - 2);
     const th = Math.random() * Math.PI * 2, ph = Math.acos(2 * Math.random() - 1);
@@ -141,7 +141,7 @@ FIG.piston = (el, num) => {
     const sorted = parts.map((q) => q.p).sort((a, b) => k.depthOf(a, P) - k.depthOf(b, P));
     gGas.innerHTML = D(sorted.map(at), { size: 1.05, tone: "hi" });
     gPiston.innerHTML = piston(z);
-    const heat = Math.max(0, Math.min(1, setC / 300));
+    const heat = st.glow;
     const coil = [];
     for (let i = 0; i < 3; i++) coil.push(k.ring(0, 0, 30.5 + i * 2.6, HZ, P, 64));
     gCoil.innerHTML = `<g opacity="${(0.12 + 0.88 * heat).toFixed(2)}">${L(coil.join(""), { tone: heat > 0.02 ? "red" : "lo" })}</g>`;
@@ -161,11 +161,12 @@ FIG.piston = (el, num) => {
     if (st.tour && !calm) {
       st.tourT += dt;
       const want = Math.floor(st.tourT / 5) % 2 ? 0 : 273;
-      setC = Lab.follow(setC, want, dt, 0.6, calm);
+      setC = Lab.follow(setC, want, dt, 1.0, calm);
       ui.control("t").value = String(Math.round(setC));
       ui.root.querySelector('[data-out="t"]').textContent = `${Math.round(setC)} °C`;
     }
-    st.T = Lab.follow(st.T, T0 + setC, dt, 0.9, calm);
+    st.T = Lab.follow(st.T, T0 + setC, dt, 1.3, calm);
+    st.glow = Lab.follow(st.glow, Math.max(0, Math.min(1, setC / 300)), dt, 0.3, calm);
     draw(calm ? 0 : dt);
     return true;
   });

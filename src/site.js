@@ -19,8 +19,12 @@
   const theme = store.get("phys-theme", null) || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
   body.dataset.theme = theme;
   document.querySelector("[data-theme-toggle]").addEventListener("click", () => {
-    body.dataset.theme = body.dataset.theme === "dark" ? "light" : "dark";
-    store.set("phys-theme", body.dataset.theme);
+    const flip = () => {
+      body.dataset.theme = body.dataset.theme === "dark" ? "light" : "dark";
+      store.set("phys-theme", body.dataset.theme);
+    };
+    if (document.startViewTransition && !STILL.matches) document.startViewTransition(flip);
+    else flip();
   });
 
   let figNo = 0;
@@ -86,7 +90,7 @@
   const line = document.querySelector("[data-scroll-line]");
   const onScroll = () => {
     const max = document.documentElement.scrollHeight - innerHeight;
-    line.style.width = `${max > 0 ? (scrollY / max) * 100 : 0}%`;
+    line.style.transform = `scaleX(${max > 0 ? scrollY / max : 0})`;
   };
   addEventListener("scroll", onScroll, { passive: true });
   onScroll();
@@ -95,15 +99,43 @@
     (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          entry.target.setAttribute("data-in", "");
-          reveal.unobserve(entry.target);
+          const el = entry.target;
+          el.setAttribute("data-in", "");
+          reveal.unobserve(el);
+          const wait = 1100 + (parseFloat(el.style.transitionDelay) || 0);
+          setTimeout(() => {
+            el.classList.remove("reveal");
+            el.removeAttribute("data-in");
+            el.style.transitionDelay = "";
+          }, wait);
         }
       });
     },
     { rootMargin: "0px 0px -8% 0px" },
   );
-  document.querySelectorAll(".chapter-head, .chapter-text, .chapter-figure, .map-grid, .section-head, .cheat").forEach((el) => {
+  document.querySelectorAll(".chapter-head, .chapter-figure, .section-head").forEach((el) => {
     el.classList.add("reveal");
     reveal.observe(el);
+  });
+  document.querySelectorAll(".chapter-text > *, .map-grid > li, .cheat > a").forEach((el, i, all) => {
+    const siblings = [...el.parentElement.children];
+    el.classList.add("reveal");
+    el.style.transitionDelay = `${Math.min(siblings.indexOf(el), 8) * 70}ms`;
+    reveal.observe(el);
+  });
+
+  const stats = document.querySelectorAll(".hero-stats dt");
+  stats.forEach((dt) => {
+    const end = parseInt(dt.textContent, 10);
+    if (!Number.isFinite(end) || end === 0 || STILL.matches) return;
+    const t0 = performance.now() + 500;
+    dt.textContent = "0";
+    const step = (now) => {
+      const u = Math.min(1, Math.max(0, (now - t0) / 1100));
+      const e = 1 - (1 - u) ** 3;
+      dt.textContent = String(Math.round(end * e));
+      if (u < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
   });
 })();

@@ -130,7 +130,21 @@ FIG.ohm = (el, num) => {
   const gNeedles = ui.part("needles"), gSlider = ui.part("slider"), gLamp = ui.part("lamp");
   const flows = [...ui.svg.querySelectorAll("[data-current]")];
   let target = 4;
-  const st = { R: 4, tour: true, tourT: 0 };
+  const st = { R: 4, tour: true, tourT: 0, a: { x: 0, v: 0 }, u: { x: 0, v: 0 }, heat: 0, flow: 0 };
+  flows.forEach((f) => (f.style.animation = "none"));
+  const springTo = (s, target, dt, calm) => {
+    if (calm) {
+      s.x = target;
+      s.v = 0;
+      return;
+    }
+    const K = 110, C = 2 * 0.32 * Math.sqrt(K);
+    for (let i = 0; i < 4; i++) {
+      const h = dt / 4;
+      s.v += (K * (target - s.x) - C * s.v) * h;
+      s.x += s.v * h;
+    }
+  };
 
   function needle(pivot, share) {
     const a = -Math.PI / 3 + Math.max(0, Math.min(1, share)) * ((Math.PI * 2) / 3);
@@ -142,8 +156,8 @@ FIG.ohm = (el, num) => {
     const I = U / (st.R + RL);
     const UL = I * RL;
     const Pw = I * I * RL;
-    const glow = Pw / ((U / RL) ** 2 * RL);
-    gNeedles.innerHTML = needle([AMM.x + AMM.w / 2, AMM.y + AMM.d / 2 + 4], I / 1) + needle([VOL.x + VOL.w / 2, VOL.y + VOL.d / 2 + 4], UL / 5);
+    const glow = st.heat;
+    gNeedles.innerHTML = needle([AMM.x + AMM.w / 2, AMM.y + AMM.d / 2 + 4], st.a.x) + needle([VOL.x + VOL.w / 2, VOL.y + VOL.d / 2 + 4], st.u.x);
     const xs = SLIDE[0] + (st.R / RMAX) * (SLIDE[1] - SLIDE[0]);
     gSlider.innerHTML = slider(xs);
     const c = [LAMP[0], LAMP[1], 30];
@@ -157,8 +171,8 @@ FIG.ohm = (el, num) => {
       `<path d="${fil}" fill="none" stroke="${glow > 0.05 ? "#ff8a1f" : "var(--anatomy-mid)"}" stroke-width="${(0.8 + glow).toFixed(2)}" stroke-linejoin="round"/>` +
       `<path class="iso-line" data-tone="hi" d="${bulb.outline}"/>` +
       `<circle cx="${ctr[0].toFixed(1)}" cy="${ctr[1].toFixed(1)}" r="${(rad * 0.35).toFixed(1)}" fill="url(#glow-${num})" opacity="${(glow * 0.9).toFixed(3)}"/>`;
-    const dur = Math.max(250, 900 / I);
-    flows.forEach((f) => (f.style.animationDuration = `${Math.round(dur)}ms`));
+    const off = (-st.flow).toFixed(2);
+    flows.forEach((f) => f.setAttribute("stroke-dashoffset", off));
     ui.say(`R = ${fmt(st.R, 1)} Ом · I = ${fmt(I)} А · Uл = ${fmt(UL)} В · P = ${fmt(Pw)} Вт`);
   }
 
@@ -172,6 +186,11 @@ FIG.ohm = (el, num) => {
       target = [2, 12, 20, 6][Math.floor(st.tourT / 3.2) % 4];
     }
     st.R = Lab.follow(st.R, target, dt, 0.45, calm);
+    const I = U / (st.R + RL);
+    springTo(st.a, I / 1, dt, calm);
+    springTo(st.u, (I * RL) / 5, dt, calm);
+    st.heat = Lab.follow(st.heat, (I * I * RL) / ((U / RL) ** 2 * RL), dt, 0.22, calm);
+    st.flow = (st.flow + (calm ? 0 : dt * 36 * I)) % 64;
     if (st.tour) {
       ui.control("r").value = String(st.R);
       ui.root.querySelector('[data-out="r"]').textContent = `${fmt(st.R, 1)} Ом`;
@@ -187,5 +206,8 @@ FIG.ohm = (el, num) => {
     st.tour = false;
     resume();
   });
+  st.a.x = U / (st.R + RL);
+  st.u.x = (st.a.x * RL) / 5;
+  st.heat = (st.a.x * st.a.x * RL) / ((U / RL) ** 2 * RL);
   draw();
 };

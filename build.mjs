@@ -24,4 +24,10 @@ const html = read("index.html")
   .replace("/*__CSS__*/", () => css)
   .replace("/*__SCRIPT__*/", () => script.replace(/<\/script/g, "<\\/script"));
 writeFileSync(join(ROOT, "index.html"), html);
+
+const bannerScript = [kit, lathe, lib, figures].join("\n");
+const banner = read("banner.html")
+  .replace("/*__CSS__*/", () => css)
+  .replace("/*__SCRIPT__*/", () => bannerScript.replace(/<\/script/g, "<\\/script"));
+writeFileSync(join(ROOT, "banner.html"), banner);
 console.log("wrote index.html", (html.length / 1024).toFixed(0) + " KB");

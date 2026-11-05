@@ -86,7 +86,7 @@ FIG.lens = (el, num) => {
   const blur = ui.svg.querySelector("[data-blur]");
   const gScreen = ui.part("screen"), gBack = ui.part("rays-back"), gFront = ui.part("rays-front"), gCandle = ui.part("candle");
   let target = 25;
-  const st = { d: 25, xs: XL - 3 * ((FOC * 25) / 15), tour: true, tourT: 0, flick: 0 };
+  const st = { d: 25, xs: XL - 3 * ((FOC * 25) / 15), tour: true, tourT: 0, flick: 0, img: 0, dt: 0 };
 
   function draw() {
     const d = st.d;
@@ -103,19 +103,22 @@ FIG.lens = (el, num) => {
     let screen = rider(xs) + S(k.cylinder(xs, 0, 2.2, RZ + 9, 14, P, 16), { tone: "mid", crease: "none" }) + S(k.slabOf(scr, RZ + 23, 72, P, 2, 0.3), { tone: "hi", crease: "lo" });
     const defocus = Math.abs(xs - ximg) / CM;
     const sharp = real ? Math.max(0, 1 - defocus / 14) : 0;
-    if (real && Math.abs(gamma) * HOBJ < 40) {
+    const fits = Math.max(0, Math.min(1, (42 - Math.abs(gamma) * HOBJ) / 14));
+    st.img = Lab.follow(st.img, real ? fits : 0, st.dt, 0.25, STILL.matches);
+    if (real && st.img > 0.01) {
       const sc = gamma * ((xs - XL) / (ximg - XL));
       const zBase = AXZ + sc * 2, zTip = AXZ + sc * HOBJ;
       const fl = flamePath([xs + 1.3, 0, zBase], zTip - zBase, 2.4 * Math.max(0.4, Math.min(3, Math.abs(sc))));
       const ctr = at([xs + 1.3, 0, (zBase + zTip) / 2]);
       blur.setAttribute("stdDeviation", (defocus * 0.5).toFixed(2));
-      screen += `<g filter="url(#soft-${num})" opacity="${(0.25 + 0.75 * sharp).toFixed(2)}"><circle cx="${ctr[0].toFixed(1)}" cy="${ctr[1].toFixed(1)}" r="${(8 * Math.max(0.6, Math.abs(gamma))).toFixed(1)}" fill="url(#flame-${num})"/><path d="${fl}" fill="#ffb347" fill-opacity=".85" stroke="#e07a10" stroke-width=".6"/></g>`;
+      screen += `<g filter="url(#soft-${num})" opacity="${((0.25 + 0.75 * sharp) * st.img).toFixed(3)}"><circle cx="${ctr[0].toFixed(1)}" cy="${ctr[1].toFixed(1)}" r="${(8 * Math.max(0.6, Math.abs(gamma))).toFixed(1)}" fill="url(#flame-${num})"/><path d="${fl}" fill="#ffb347" fill-opacity=".85" stroke="#e07a10" stroke-width=".6"/></g>`;
     }
     gScreen.innerHTML = screen;
     const lensTop = [XL, 0, AXZ + HOBJ];
     const lensMid = [XL, 0, AXZ];
     const lensFoc = [XL, 0, AXZ + (HOBJ * FOC) / (FOC - d)];
-    const rays = real ? [[tip, lensTop], [tip, lensMid], [tip, lensFoc]] : [[tip, lensTop], [tip, lensMid]];
+    const rays = [[tip, lensTop], [tip, lensMid], [tip, lensFoc]];
+    const opOf = (b) => Math.max(0, Math.min(1, (19 - Math.abs(b[2] - AXZ)) / 5));
     const after = rays.map(([a, b]) => {
       let dir;
       if (b === lensTop) dir = [-FOC * CM, 0, -HOBJ];
@@ -124,11 +127,11 @@ FIG.lens = (el, num) => {
       const tx = (xs - b[0]) / dir[0];
       return [b, [b[0] + dir[0] * tx, 0, b[2] + dir[2] * tx]];
     });
-    const lit = (segs) => `<path d="${segs.map(([a, b]) => k.segment(a, b, P)).join("")}" fill="none" stroke="${RAY}" stroke-width="1" stroke-linecap="round" opacity=".9"/>`;
-    gFront.innerHTML = lit(rays.filter(([, b]) => Math.abs(b[2] - AXZ) < 19));
-    gBack.innerHTML = lit(after.filter(([b]) => Math.abs(b[2] - AXZ) < 19)) + D(after.filter(([b]) => Math.abs(b[2] - AXZ) < 19).map(([, e]) => at(e)), { size: 0.8, tone: "hi" });
+    const ray = ([a, b], op) => (op < 0.01 ? "" : `<path d="${k.segment(a, b, P)}" fill="none" stroke="${RAY}" stroke-width="1" stroke-linecap="round" opacity="${(0.9 * op).toFixed(3)}"/>`);
+    gFront.innerHTML = rays.map((r) => ray(r, opOf(r[1]))).join("");
+    gBack.innerHTML = after.map((r) => ray(r, opOf(r[0]))).join("") + after.map(([b, e]) => (opOf(b) > 0.01 ? `<g opacity="${opOf(b).toFixed(3)}">${D([at(e)], { size: 0.8, tone: "hi" })}</g>` : "")).join("");
     const cz0 = RZ + 9, cz1 = AXZ + 2;
-    st.flick += 0.07;
+    st.flick += st.dt * 4.2;
     const wob = 1 + 0.06 * Math.sin(st.flick * 7) + 0.04 * Math.sin(st.flick * 13);
     const fc = at([xc, 0, AXZ + 6]);
     gCandle.innerHTML = rider(xc, true) +
@@ -154,9 +157,10 @@ FIG.lens = (el, num) => {
       ui.control("d").value = String(st.d);
       ui.root.querySelector('[data-out="d"]').textContent = `${fmt(st.d, 1)} см`;
     }
-    st.d = Lab.follow(st.d, target, dt, 0.5, calm);
+    st.d = Lab.follow(st.d, target, dt, 0.6, calm);
+    st.dt = dt;
     const want = draw();
-    st.xs = Lab.follow(st.xs, want, dt, 0.7, calm);
+    st.xs = Lab.follow(st.xs, want, dt, 0.55, calm);
     return true;
   });
   Lab.bindRange(ui, "d", (v) => {

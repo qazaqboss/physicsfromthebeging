@@ -27,7 +27,17 @@
 node build.mjs
 ```
 
-Скрипт склеивает `src/` в один `index.html`.
+Скрипт склеивает `src/` в один `index.html` и собирает `banner.html`.
+
+### Баннер для ссылки
+
+`og.png` (2400×1260) — превью, которое показывают Telegram, VK, WhatsApp, X и другие сервисы. Мета-теги в `src/index.html` ссылаются на адрес GitHub Pages: `https://qazaqboss.github.io/physicsfromthebeging/og.png`. Если сайт будет жить по другому адресу, замените его в `og:url`, `og:image` и `twitter:image`.
+
+Перерисовать баннер (нужен Playwright):
+
+```sh
+node build.mjs && node scripts/banner.cjs
+```
 
 ```text
 src/

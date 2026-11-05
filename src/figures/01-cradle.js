@@ -66,17 +66,22 @@ FIG.cradle = (el, num) => {
 
   const gBack = ui.part("back-strings"), gBalls = ui.part("balls"), gFront = ui.part("front-strings");
   let count = 1, theta0 = (28 * Math.PI) / 180;
-  const st = { mode: "lift", t: 0, lift: 0, amp: theta0, theta: 0, rate: 0 };
+  const st = { mode: "lift", t: 0, amp: theta0, rate: 0, ang: XS.map(() => 0), from: XS.map(() => 0), flash: [] };
+  const smooth = (u) => (u <= 0 ? 0 : u >= 1 ? 1 : u * u * u * (u * (u * 6 - 15) + 10));
 
   function centreOf(i, angle) {
     return [XS[i] + LEN * Math.sin(angle), 0, PIVOT_Z - LEN * Math.cos(angle)];
   }
 
+  function swingAngles(th) {
+    const out = XS.map(() => 0);
+    if (th < 0) for (let i = 0; i < count; i++) out[i] = th;
+    if (th > 0) for (let i = N - count; i < N; i++) out[i] = th;
+    return out;
+  }
+
   function draw() {
-    const angles = XS.map(() => 0);
-    const th = st.theta;
-    if (th < 0) for (let i = 0; i < count; i++) angles[i] = th;
-    if (th > 0) for (let i = N - count; i < N; i++) angles[i] = th;
+    const angles = st.ang;
     const centres = angles.map((a, i) => centreOf(i, a));
     let backD = "", frontD = "";
     const ends = [];
@@ -90,9 +95,15 @@ FIG.cradle = (el, num) => {
     gBack.innerHTML = L(backD, { tone: "mid" });
     gFront.innerHTML = L(frontD, { tone: "mid" }) + D(ends, { size: 0.9, tone: "hi" });
     const order = centres.map((c, i) => i).sort((a, b) => k.depthOf(centres[a], P) - k.depthOf(centres[b], P));
+    const restZ = PIVOT_Z - LEN;
     gBalls.innerHTML = order.map((i) => {
-      const moving = Math.abs(angles[i]) > 0.002 || (st.mode !== "swing" && angles[i] !== 0);
-      return `<path class="iso-halo" d="${k.haloOf({ x: centres[i][0] - R * 0.7, y: -R * 0.7, w: R * 1.4, d: R * 1.4, r: R * 0.7 }, 0, 0.1, P)}" style="opacity:${0.18 * Math.max(0, 1 - (centres[i][2] - (PIVOT_Z - LEN)) / 30)}"/>` + Lab.ball(P, centres[i], R, { lit: moving });
+      const lift = Math.max(0, 1 - (centres[i][2] - restZ) / 30);
+      const moving = Math.abs(angles[i]) > 0.01;
+      return `<path class="iso-halo" d="${k.haloOf({ x: centres[i][0] - R * 0.7, y: -R * 0.7, w: R * 1.4, d: R * 1.4, r: R * 0.7 }, 0, 0.1, P)}" style="opacity:${(0.22 * lift).toFixed(3)}"/>` + Lab.ball(P, centres[i], R, { lit: moving });
+    }).join("") + st.flash.map((f) => {
+      const c = at([f.x, 0, restZ]);
+      const u = f.t / 0.45;
+      return `<circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="${(3 + u * 16).toFixed(1)}" fill="none" stroke="var(--anatomy-hi)" stroke-width="${(1.2 * (1 - u)).toFixed(2)}" opacity="${(0.7 * (1 - u) ** 2).toFixed(3)}"/>`;
     }).join("");
     const v = Math.abs(st.rate) * L_REAL;
     const n = st.mode === "swing" ? count : 0;
@@ -102,28 +113,33 @@ FIG.cradle = (el, num) => {
   const release = () => {
     st.mode = "lift";
     st.t = 0;
+    st.from = st.ang.slice();
+    st.rate = 0;
   };
 
   const loop = Lab.loop(ui.stage, (dt, calm) => {
     st.t += dt;
+    st.flash = st.flash.map((f) => ({ ...f, t: f.t + dt })).filter((f) => f.t < 0.45);
     if (st.mode === "lift") {
-      const target = -theta0;
-      st.theta = Lab.follow(st.theta, target, dt, 0.18, calm);
-      st.rate = 0;
-      if (st.t > 1.1) {
+      const want = XS.map((_, i) => (i < count ? -theta0 : 0));
+      const u = calm ? 1 : smooth(st.t / 1.1);
+      st.ang = want.map((w, i) => st.from[i] + (w - st.from[i]) * u);
+      if (st.t > 1.5) {
         st.mode = "swing";
         st.t = 0;
         st.amp = theta0;
+        st.prev = -theta0;
       }
     } else {
-      const decay = Math.exp(-st.t / 9);
-      const a = st.amp * decay;
-      st.theta = -a * Math.cos(OMEGA * st.t);
+      const a = st.amp * Math.exp(-st.t / 10);
+      const th = -a * Math.cos(OMEGA * st.t);
       st.rate = a * OMEGA * Math.sin(OMEGA * st.t);
-      if (a < 0.02 || calm) {
-        st.mode = "lift";
-        st.t = 0;
+      if (Math.sign(th) !== Math.sign(st.prev) && a > 0.04) {
+        st.flash.push({ x: th > 0 ? XS[count - 1] + R : XS[N - count] - R, t: 0 });
       }
+      st.prev = th;
+      st.ang = swingAngles(th);
+      if ((a < 0.035 && Math.abs(th) < 0.004) || calm) release();
     }
     draw();
     return true;
@@ -142,6 +158,7 @@ FIG.cradle = (el, num) => {
     loop.run();
   });
   ui.control("angle").addEventListener("change", release);
-  st.theta = -theta0;
+  st.ang = XS.map((_, i) => (i < count ? -theta0 : 0));
+  st.from = st.ang.slice();
   draw();
 };

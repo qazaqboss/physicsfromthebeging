@@ -76,39 +76,48 @@ FIG.melde = (el, num) => {
   });
 
   const gString = ui.part("string"), gNeedle = ui.part("needle"), gBlade = ui.part("blade");
-  const st = { phase: 0, f: F1, tour: true, tourT: 0, amp: 0 };
+  const MODES = 6;
+  const st = { phase: 0, f: F1, tour: true, tourT: 0, amps: Array.from({ length: MODES }, (_, i) => (i === 0 ? 1 : 0)) };
+  const gainOf = (f, n) => {
+    const r = f / (n * F1);
+    return Math.min(1, 1 / Math.sqrt((1 - r * r) ** 2 + (r / Q) ** 2) / Q);
+  };
   const respond = (f) => {
-    const n = Math.max(1, Math.round(f / F1));
-    const fn = n * F1;
-    const r = f / fn;
-    const gain = 1 / Math.sqrt((1 - r * r) ** 2 + (r / Q) ** 2);
-    return { n, gain: Math.min(gain / Q, 1) };
+    const n = Math.max(1, Math.min(MODES, Math.round(f / F1)));
+    return { n, gain: gainOf(f, n) };
   };
 
   function draw() {
-    const { n, gain } = respond(st.f);
-    const A = AMAX * Math.max(0.04, gain);
+    const { n } = respond(st.f);
+    const amps = st.amps.map((g) => AMAX * Math.max(0, g));
+    const total = amps.reduce((x, y) => x + y, 0);
+    const lead = amps.indexOf(Math.max(...amps)) + 1;
+    const share = total > 0 ? amps[lead - 1] / total : 0;
+    const gain = st.amps[lead - 1];
     const c = Math.cos(st.phase);
     const pts = [], up = [], dn = [];
-    const N = 120;
+    const N = 140;
     for (let i = 0; i <= N; i++) {
       const u = i / N;
       const x = XA + (XB - XA) * u;
-      const s = Math.sin(n * Math.PI * u);
-      pts.push(at([x, 0, SZ + A * s * c]));
-      up.push(at([x, 0, SZ + A * Math.abs(s)]));
-      dn.push(at([x, 0, SZ - A * Math.abs(s)]));
+      let y = 0;
+      for (let m = 0; m < MODES; m++) if (amps[m] > 0.01) y += amps[m] * Math.sin((m + 1) * Math.PI * u);
+      pts.push(at([x, 0, SZ + y * c]));
+      up.push(at([x, 0, SZ + Math.abs(y)]));
+      dn.push(at([x, 0, SZ - Math.abs(y)]));
     }
     const nodes = [];
-    for (let j = 0; j <= n; j++) nodes.push(at([XA + ((XB - XA) * j) / n, 0, SZ]));
-    gString.innerHTML = (gain > 0.15 ? L(k.pathOf(up) + k.pathOf(dn), { tone: "faint" }) : "") + L(k.pathOf(pts), { tone: "lit" }) + L(k.segment([XB + PR, 0, SZ - PR], [XB + PR, 0, SZ - PR - 6], P), { tone: "hi" }) + D(nodes, { size: 0.9, tone: "hi" });
+    for (let j = 1; j < lead; j++) nodes.push(at([XA + ((XB - XA) * j) / lead, 0, SZ]));
+    const envOp = Math.max(0, Math.min(1, (gain - 0.08) / 0.3));
+    const nodeOp = Math.max(0, Math.min(1, (share - 0.7) / 0.25)) * envOp;
+    gString.innerHTML = `<g opacity="${envOp.toFixed(3)}">${L(k.pathOf(up) + k.pathOf(dn), { tone: "faint" })}</g>` + L(k.pathOf(pts), { tone: "lit" }) + L(k.segment([XB + PR, 0, SZ - PR], [XB + PR, 0, SZ - PR - 6], P), { tone: "hi" }) + `<g opacity="${nodeOp.toFixed(3)}">${D(nodes, { size: 1, tone: "hi" })}</g>` + D([at([XA, 0, SZ]), at([XB, 0, SZ])], { size: 0.9, tone: "hi" });
     const wob = 0.6 * Math.sin(st.phase * 3);
     gBlade.innerHTML = S(k.slabOf({ x: XA - 18, y: -1.5, w: 3, d: 3, r: 0.6 }, 30, SZ - 30 + 1.5, P, 2), { tone: "mid" }) +
       S(k.slabOf({ x: XA - 15.4 + wob * 0, y: -1, w: 16, d: 2, r: 0.5 }, SZ - 1 + wob, 2, P, 2), { tone: "hi", lit: true });
     const a = -Math.PI * 0.75 + (Math.min(st.f, 110) / 110) * Math.PI * 1.5;
     gNeedle.innerHTML = L(k.lineOnTop([DIAL[0] - Math.sin(a) * 1.8, DIAL[1] + Math.cos(a) * 1.8], [DIAL[0] + Math.sin(a) * 7, DIAL[1] - Math.cos(a) * 7], 26.1, P), { tone: "lit", free: "start" }) + D([at([DIAL[0], DIAL[1], 26.1])], { size: 0.7, tone: "hi" });
-    const lam = (2 * LEN) / n;
-    ui.say(gain > 0.3 ? `f = ${fmt(st.f, 1)} Гц · резонанс n = ${n} · λ = ${fmt(lam)} м` : `f = ${fmt(st.f, 1)} Гц · нет резонанса`);
+    const lam = (2 * LEN) / lead;
+    ui.say(gain > 0.3 ? `f = ${fmt(st.f, 1)} Гц · резонанс n = ${lead} · λ = ${fmt(lam)} м` : `f = ${fmt(st.f, 1)} Гц · нет резонанса (ближайший n = ${n})`);
   }
 
   const resume = Lab.idle(9000, () => {
@@ -117,10 +126,11 @@ FIG.melde = (el, num) => {
   });
   const loop = Lab.loop(ui.stage, (dt, calm) => {
     st.phase += dt * 2 * Math.PI * (calm ? 0 : 0.9);
+    st.amps = st.amps.map((g, i) => Lab.follow(g, gainOf(st.f, i + 1), dt, 0.35, calm));
     if (st.tour && !calm) {
       st.tourT += dt;
       const target = F1 * (1 + (Math.floor(st.tourT / 4.5) % 4));
-      st.f = Lab.follow(st.f, target, dt, 0.9, calm);
+      st.f = Lab.follow(st.f, target, dt, 1.1, calm);
       freq = st.f;
       const input = ui.control("f");
       input.value = st.f.toFixed(1);

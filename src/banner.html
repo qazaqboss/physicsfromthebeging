@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Баннер — Физика с самого начала</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>/*__CSS__*/
+html,body{width:1200px;height:630px;overflow:hidden;margin:0}
+body{background-attachment:scroll}
+.banner{position:relative;width:1200px;height:630px;display:grid;grid-template-columns:500px 1fr;gap:28px;padding:56px 56px 52px 64px;box-sizing:border-box}
+.banner::before{content:"";position:absolute;inset:22px;box-shadow:0 0 0 1px var(--anatomy-mid);pointer-events:none}
+.banner::after{content:"";position:absolute;left:18px;top:18px;width:8px;height:8px;border-radius:50%;border:1px solid var(--anatomy-mid);background:var(--anatomy-page);box-shadow:1148px 0 0 -1px var(--anatomy-page),1148px 0 0 0 var(--anatomy-mid)}
+.b-text{display:flex;flex-direction:column;justify-content:center;position:relative;z-index:1}
+.b-brand{display:flex;align-items:center;gap:10px;font-family:"Inter Tight",sans-serif;font-weight:600;font-size:18px;color:var(--anatomy-strong);margin-bottom:36px}
+.b-text h1{font-size:68px;line-height:.98;font-weight:600}
+.b-text h1 em{font-style:normal;position:relative;white-space:nowrap}
+.b-text h1 em::after{content:"";position:absolute;left:0;right:0;bottom:.05em;height:.09em;background:var(--anatomy-strong)}
+.b-lead{font-size:19px;line-height:1.5;margin:24px 0 30px;color:var(--anatomy-text);max-width:25em}
+.b-laws{display:flex;flex-wrap:wrap;gap:8px}
+.b-laws span{font-family:var(--anatomy-mono);font-size:13.5px;color:var(--anatomy-strong);padding:7px 12px;border:1px solid var(--rule);border-radius:99px;background:var(--anatomy-card)}
+.b-fig{display:flex;align-items:center;position:relative;z-index:1}
+.b-fig .iso-figure{margin:0;width:100%}
+.b-fig .lab-controls,.b-fig .iso-legend,.b-fig [data-corner="hint"],.b-fig [data-corner="readout"]{display:none}
+.b-fig .iso-plate{padding:44px 18px 40px}
+.b-url{position:absolute;right:64px;bottom:30px;font-family:var(--anatomy-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--anatomy-muted);z-index:2}
+</style>
+</head>
+<body class="iso" data-theme="light">
+<div class="banner">
+  <div class="b-text">
+    <div class="b-brand"><span class="brand-mark" aria-hidden="true"></span>Физика · с самого начала</div>
+    <p class="eyebrow">Интерактивная лаборатория · 8 опытов</p>
+    <h1>Физика,<br>которую можно <em>потрогать</em></h1>
+    <p class="b-lead">Живые приборы на лабораторном столе — от жёлоба Галилея до оптической скамьи.</p>
+    <div class="b-laws"><span>s = at²/2</span><span>F = ma</span><span>Σmv = const</span><span>T = 2π√(m/k)</span><span>pV = νRT</span><span>I = U/R</span><span>1/F = 1/d + 1/f</span></div>
+  </div>
+  <div class="b-fig" data-figure="cradle"></div>
+</div>
+<script type="module">/*__SCRIPT__*/
+FIG.cradle(document.querySelector("[data-figure]"), 1);
+</script>
+</body>
+</html>

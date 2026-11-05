@@ -71,7 +71,7 @@ FIG.incline = (el, num) => {
     width: W,
     height: H,
     label: "Наклонный жёлоб Галилея: шар скатывается и проходит четверо ворот, расставленных на расстояниях 1, 4, 9 и 16 единиц.",
-    body: [base, `<g data-part="rig-back"></g>`, `<g data-part="ball"></g>`, `<g data-part="rig-front"></g>`],
+    body: [base, `<g data-part="rig-back"></g>`, `<g data-part="ball"></g>`, `<g data-part="rig-front"></g>`, `<g data-part="flash"></g>`],
   });
 
   const ui = Lab.card(el, {
@@ -88,10 +88,11 @@ FIG.incline = (el, num) => {
     controls: Lab.range("angle", "Наклон α", { min: 3, max: 14, step: 0.5, value: 8, unit: "°" }) + Lab.button("go", "Пуск", true),
   });
 
-  const gBack = ui.part("rig-back"), gFront = ui.part("rig-front"), gBall = ui.part("ball");
-  const st = { phase: "wait", t: 0, passed: 0, drawnPassed: -1, drawnAlpha: -1 };
+  const gBack = ui.part("rig-back"), gFront = ui.part("rig-front"), gBall = ui.part("ball"), gFlash = ui.part("flash");
+  const st = { phase: "wait", t: 0, s: START, v: 0, clock: 0, tEnd: 0, passed: 0, hits: [], from: START, drawnPassed: -1, drawnAlpha: -1 };
   const accel = () => (5 / 7) * G_ACC * Math.sin(alpha);
-  const toS = (meters) => meters * 100;
+  const ease = (u) => (u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u));
+  const endOf = () => geo().len - R - 2;
 
   function draw() {
     const g = geo();
@@ -102,8 +103,7 @@ FIG.incline = (el, num) => {
       st.drawnPassed = st.passed;
       st.drawnAlpha = alpha;
     }
-    const tt = st.phase === "roll" ? st.t : st.phase === "done" ? st.tEnd : 0;
-    const s = Math.min(START + toS((accel() * tt * tt) / 2), g.len - R - 2);
+    const s = Math.min(st.s, endOf());
     const c = ballAt(s);
     const roll = -(s - START) / R;
     const dir = [Math.cos(alpha), 0, -Math.sin(alpha)];
@@ -113,47 +113,93 @@ FIG.incline = (el, num) => {
       return [c[0] + R * 0.98 * (Math.sin(ang) * dir[0] + Math.cos(ang) * nrm[0]), c[1] - R * 0.35, c[2] + R * 0.98 * (Math.sin(ang) * dir[2] + Math.cos(ang) * nrm[2])];
     });
     gBall.innerHTML = `<path class="iso-halo" d="${k.haloOf({ x: c[0] - 4, y: -4, w: 8, d: 8, r: 4 }, surf(s)[2], 0.1, P)}" style="opacity:.25;filter:blur(3px)"/>` +
-      Lab.ball(P, c, R, { lit: st.phase === "roll" }) + D(mark.filter((m) => k.depthOf(m, P) > k.depthOf(c, P)).map(at), { size: 0.8, tone: "hi" });
-    const v = accel() * tt;
+      Lab.ball(P, c, R, { lit: st.phase === "roll" || st.phase === "rest" }) + D(mark.filter((m) => k.depthOf(m, P) > k.depthOf(c, P)).map(at), { size: 0.8, tone: "hi" });
+    gFlash.innerHTML = st.hits.map((h) => {
+      const p = surf(g.gates[h.i]);
+      const q = at([p[0], 0, p[2] + 2 * R + 2]);
+      const u = Math.min(1, (st.clock - h.t) / 0.7);
+      if (u >= 1 || u < 0) return "";
+      return `<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${(2 + 14 * Math.sqrt(u)).toFixed(1)}" fill="none" stroke="var(--anatomy-hi)" stroke-width="${(1.3 * (1 - u)).toFixed(2)}" opacity="${((1 - u) ** 2).toFixed(3)}"/>`;
+    }).join("");
     const t1 = Math.sqrt((2 * (g.unit / 100)) / accel());
     const deg = (alpha * 180) / Math.PI;
-    if (st.phase === "done") ui.say(`t₁ : t₂ : t₃ : t₄ = ${[1, 2, 3, 4].map((n) => fmt(n * t1, 2)).join(" : ")} с`);
-    else ui.say(`α = ${fmt(deg, 1)}° · a = ${fmt(accel())} м/с² · t = ${fmt(tt)} с · v = ${fmt(v)} м/с`);
+    if (st.phase === "rest" || st.phase === "return") ui.say(`t₁ : t₂ : t₃ : t₄ = ${[1, 2, 3, 4].map((n) => fmt(n * t1, 2)).join(" : ")} с`);
+    else ui.say(`α = ${fmt(deg, 1)}° · a = ${fmt(accel())} м/с² · t = ${fmt(st.phase === "roll" ? Math.min(st.clock, st.tEnd || st.clock) : 0)} с · v = ${fmt(Math.abs(st.v) / 100)} м/с`);
   }
 
   const loop = Lab.loop(ui.stage, (dt, calm) => {
     const g = geo();
+    const end = endOf();
     st.t += dt;
-    if (st.phase === "wait" && st.t > 1) {
-      st.phase = "roll";
-      st.t = 0;
-      st.passed = 0;
+    if (st.phase === "wait") {
+      st.s = START;
+      st.v = 0;
+      if (st.t > 0.9) {
+        st.phase = "roll";
+        st.t = 0;
+        st.clock = 0;
+        st.tEnd = 0;
+        st.passed = 0;
+        st.hits = [];
+      }
     } else if (st.phase === "roll") {
-      const s = START + toS((accel() * st.t * st.t) / 2);
-      st.passed = g.gates.filter((gs) => s >= gs).length;
-      if (s >= g.len - R - 2) {
-        st.phase = "done";
-        st.tEnd = st.t;
+      const a = accel() * 100;
+      const n = 6;
+      for (let i = 0; i < n; i++) {
+        const h = dt / n;
+        st.clock += h;
+        st.v += a * h;
+        st.s += st.v * h;
+        const passed = g.gates.filter((gs) => st.s >= gs).length;
+        if (passed > st.passed && !st.tEnd) {
+          for (let j = st.passed; j < passed; j++) st.hits.push({ i: j, t: st.clock });
+          st.passed = passed;
+        }
+        if (st.s >= end && st.v > 0) {
+          if (!st.tEnd) st.tEnd = st.clock;
+          st.s = end;
+          st.v = -0.32 * st.v;
+        }
+      }
+      if (st.tEnd && Math.abs(st.v) < 6 && end - st.s < 0.6) {
+        st.s = end;
+        st.v = 0;
+        st.phase = "rest";
         st.t = 0;
       }
-    } else if (st.phase === "done" && st.t > 3.2) {
-      st.phase = "wait";
+      if (calm) {
+        st.s = end;
+        st.phase = "rest";
+      }
+    } else if (st.phase === "rest" && st.t > 2.8) {
+      st.phase = "return";
       st.t = 0;
+      st.from = st.s;
       st.passed = 0;
+    } else if (st.phase === "return") {
+      const u = ease(st.t / 1.5);
+      st.s = st.from + (START - st.from) * u;
+      st.v = 0;
+      if (u >= 1) {
+        st.phase = "wait";
+        st.t = 0;
+      }
     }
     draw();
-    return !calm || st.phase !== "done";
+    return !calm || st.phase !== "rest";
   });
 
   const restart = () => {
-    st.phase = "wait";
-    st.t = 0.7;
+    st.phase = "return";
+    st.t = 0;
+    st.from = Math.min(st.s, endOf());
     st.passed = 0;
+    st.hits = [];
     loop.run();
   };
   Lab.bindRange(ui, "angle", (v) => {
     alpha = (v * Math.PI) / 180;
-    if (st.phase !== "wait") restart();
+    if (st.phase === "roll" || st.phase === "rest") restart();
     draw();
   }, (v) => `${String(v).replace(".", ",")}°`);
   ui.control("go").addEventListener("click", restart);
