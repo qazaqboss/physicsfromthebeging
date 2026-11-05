@@ -55,18 +55,21 @@ FIG.airtrack = (el, num) => {
     out.push(S(k.slabOf({ x: 130, y: -8, w: 4, d: 3, r: 0.8 }, 4, PUL[2] - 4 + 2, P, 2), { tone: "mid" }));
     return out.join("");
   }
-  function pulleyFront(turn) {
-    const F = G.frameAlong([PUL[0], -4.8, PUL[2]], [0, 1, 0]);
-    const out = [];
-    out.push(S(G.disc(0, 1.6, PR, F, P), { tone: "hi", crease: "none" }));
-    out.push(S(G.disc(1.6, 3.4, PR - 1.2, F, P), { tone: "hi", crease: "none" }));
-    out.push(S(G.disc(3.4, 5, PR, F, P), { tone: "hi", crease: "none" }));
-    out.push(L(G.spokesOf(F, 5, 1.6, PR - 1.2, 4, P, { phase: turn }), { tone: "lo" }));
-    out.push(S(G.disc(5, 6.4, 1.4, F, P), { tone: "mid" }));
-    out.push(S(k.slabOf({ x: 130, y: 5, w: 4, d: 3, r: 0.8 }, 4, PUL[2] - 4 + 2, P, 2), { tone: "mid" }));
-    out.push(S(k.slabOf({ x: 132, y: -9, w: 4, d: 18, r: 1 }, -26, 8, P, 2), { tone: "mid" }));
-    out.push(Lab.knob(P, 134, 0, 3, -32, 4, 0.3));
-    return out.join("");
+  const PF = G.frameAlong([PUL[0], -4.8, PUL[2]], [0, 1, 0]);
+  function pulleyDiscs() {
+    return [
+      S(G.disc(0, 1.6, PR, PF, P), { tone: "hi", crease: "none" }),
+      S(G.disc(1.6, 3.4, PR - 1.2, PF, P), { tone: "hi", crease: "none" }),
+      S(G.disc(3.4, 5, PR, PF, P), { tone: "hi", crease: "none" }),
+    ].join("");
+  }
+  function pulleyRest() {
+    return [
+      S(G.disc(5, 6.4, 1.4, PF, P), { tone: "mid" }),
+      S(k.slabOf({ x: 130, y: 5, w: 4, d: 3, r: 0.8 }, 4, PUL[2] - 4 + 2, P, 2), { tone: "mid" }),
+      S(k.slabOf({ x: 132, y: -9, w: 4, d: 18, r: 1 }, -26, 8, P, 2), { tone: "mid" }),
+      Lab.knob(P, 134, 0, 3, -32, 4, 0.3),
+    ].join("");
   }
 
   function glider(lit) {
@@ -98,7 +101,7 @@ FIG.airtrack = (el, num) => {
     width: W,
     height: H,
     label: "Воздушный трек на лабораторном столе: каретка тянется нитью через блок, на конце нити висит грузик.",
-    body: [table(), `<g data-part="hang"></g>`, pulleyBack(), track(), `<g data-part="marks"></g>`, `<g data-part="string"></g>`, `<g data-part="glider"></g>`, `<g data-part="pulley"></g>`],
+    body: [table(), `<g data-part="hang"></g>`, pulleyBack(), track(), `<g data-part="marks"></g>`, `<g data-part="string"></g>`, `<g data-part="glider"></g>`, pulleyDiscs(), `<g data-part="pulley"></g>`, pulleyRest()],
   });
 
   const ui = Lab.card(el, {
@@ -133,9 +136,13 @@ FIG.airtrack = (el, num) => {
     const n = Math.round(mass / 0.01);
     const sway = st.sway * Math.exp(-st.swayT / 1.4) * Math.sin(2 * Math.PI * 1.1 * st.swayT);
     const dx = sway * Math.min(1, (PUL[2] - zHang) / 60);
-    gHang.innerHTML = hanger(zHang, n, true, dx);
+    if (st.hangN !== n) {
+      gHang.innerHTML = hanger(HANG_TOP, n, true, 0);
+      st.hangN = n;
+    }
+    gHang.setAttribute("transform", k.translateAlong(P, [dx, 0, zHang - HANG_TOP]));
     gString.innerHTML = L(k.segment([x + 18, 0, HOOK_Z - 2], [PUL[0], 0, HOOK_Z], P) + k.segment([PUL[0] + PR, 0, PUL[2]], [PUL[0] + PR + dx, 0, zHang], P), { tone: "hi" });
-    gPulley.innerHTML = pulleyFront(-(st.s / UNIT) / PR);
+    gPulley.innerHTML = L(G.spokesOf(PF, 5, 1.6, PR - 1.2, 4, P, { phase: -(st.s / UNIT) / PR }), { tone: "lo" });
     const marks = [];
     for (let tm = 0; tm <= tNow + 1e-6; tm += 0.1) marks.push(at([X_START + (a * tm * tm) / 2 / UNIT, 0, TZ]));
     gMarks.innerHTML = `<g opacity="${st.fade.toFixed(3)}">${D(marks, { size: 1, tone: "hi" })}</g>`;

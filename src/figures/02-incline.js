@@ -112,8 +112,15 @@ FIG.incline = (el, num) => {
       const ang = roll + j * Math.PI;
       return [c[0] + R * 0.98 * (Math.sin(ang) * dir[0] + Math.cos(ang) * nrm[0]), c[1] - R * 0.35, c[2] + R * 0.98 * (Math.sin(ang) * dir[2] + Math.cos(ang) * nrm[2])];
     });
-    gBall.innerHTML = `<path class="iso-halo" d="${k.haloOf({ x: c[0] - 4, y: -4, w: 8, d: 8, r: 4 }, surf(s)[2], 0.1, P)}" style="opacity:.25;filter:blur(3px)"/>` +
-      Lab.ball(P, c, R, { lit: st.phase === "roll" || st.phase === "rest" }) + D(mark.filter((m) => k.depthOf(m, P) > k.depthOf(c, P)).map(at), { size: 0.8, tone: "hi" });
+    if (!st.ballNode) {
+      gBall.innerHTML = `<g>${Lab.shadow(P, 0, 0, 0, 4.5, 0.45)}</g><g>${Lab.ball(P, [0, 0, 0], R)}</g><g></g>`;
+      st.ballNode = [...gBall.children];
+    }
+    const [shN, baN, mkN] = st.ballNode;
+    shN.setAttribute("transform", k.translateAlong(P, [c[0], 0, surf(s)[2]]));
+    baN.setAttribute("transform", k.translateAlong(P, c));
+    baN.firstChild.toggleAttribute("data-lit", st.phase === "roll" || st.phase === "rest");
+    mkN.innerHTML = D(mark.filter((m) => k.depthOf(m, P) > k.depthOf(c, P)).map(at), { size: 0.8, tone: "hi" });
     gFlash.innerHTML = st.hits.map((h) => {
       const p = surf(g.gates[h.i]);
       const q = at([p[0], 0, p[2] + 2 * R + 2]);

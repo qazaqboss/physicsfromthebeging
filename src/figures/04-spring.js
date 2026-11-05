@@ -90,12 +90,22 @@ FIG.spring = (el, num) => {
   function draw() {
     const ext = st.x / MM;
     const bottom = SPRING_TOP - L0 - ext;
-    const turns = 18;
-    const h = Lab.helix(P, AX[0], AX[1], COIL_R, bottom + 2, SPRING_TOP - 2, turns, 28);
-    const lo = load(bottom, n);
-    gBack.innerHTML = L(h.back, { tone: "lo" }) + S(k.cylinder(AX[0], AX[1], COIL_R + 0.8, SPRING_TOP - 2, 2, P, 24), { tone: "mid" });
-    gLoad.innerHTML = lo.svg;
-    gFront.innerHTML = L(h.front, { tone: "hi" }) + S(k.cylinder(AX[0], AX[1], COIL_R + 0.8, bottom, 2, P, 24), { tone: "mid" });
+    const h = Lab.helix(P, AX[0], AX[1], COIL_R, bottom + 2, SPRING_TOP - 2, 18, 20);
+    const REF = SPRING_TOP - L0;
+    if (!st.built) {
+      gBack.innerHTML = L("M0 0", { tone: "lo" }) + S(k.cylinder(AX[0], AX[1], COIL_R + 0.8, SPRING_TOP - 2, 2, P, 24), { tone: "mid" });
+      gFront.innerHTML = L("M0 0", { tone: "hi" }) + `<g>${S(k.cylinder(AX[0], AX[1], COIL_R + 0.8, REF, 2, P, 24), { tone: "mid" })}</g>`;
+      st.built = { back: gBack.firstChild, front: gFront.firstChild, collar: gFront.lastChild };
+    }
+    if (st.loadN !== n) {
+      gLoad.innerHTML = load(REF, n).svg;
+      st.loadN = n;
+    }
+    const move = k.translateAlong(P, [0, 0, bottom - REF]);
+    gLoad.setAttribute("transform", move);
+    st.built.collar.setAttribute("transform", move);
+    st.built.back.setAttribute("d", h.back);
+    st.built.front.setAttribute("d", h.front);
     const m = massOf();
     const T = 2 * Math.PI * Math.sqrt(m / K);
     ui.say(`m = ${Math.round(m * 1000)} г · x = ${fmt(st.x * 100, 1)} см · F = ${fmt(K * st.x)} Н · T = ${fmt(T)} с`);

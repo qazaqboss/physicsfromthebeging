@@ -72,6 +72,7 @@ const Lab = {
     const stage = `<div class="iso-stage" tabindex="0" role="group" aria-label="${label || title}">${svg}</div>`;
     el.innerHTML = k.plateHtml({ fig, title, hint, readout, keys, caption, body: stage + (controls ? `<div class="lab-controls">${controls}</div>` : "") });
     const root = el.querySelector(".iso-figure");
+    Lab.layer(root.querySelector(".iso-stage svg"));
     return {
       root,
       stage: root.querySelector(".iso-stage"),
@@ -83,6 +84,43 @@ const Lab = {
         if (this.readout.textContent !== text) this.readout.textContent = text;
       },
     };
+  },
+
+  layer(svg) {
+    const NS = "http://www.w3.org/2000/svg";
+    const kids = [...svg.childNodes].filter((n) => n.nodeType === 1);
+    const runs = [];
+    kids.forEach((n) => {
+      const live = n.hasAttribute("data-part");
+      const last = runs[runs.length - 1];
+      if (last && last.live === live) last.nodes.push(n);
+      else runs.push({ live, nodes: [n] });
+    });
+    const wrap = document.createElement("div");
+    wrap.className = "iso-layers";
+    svg.parentNode.insertBefore(wrap, svg);
+    wrap.appendChild(svg);
+    runs.forEach((run, i) => {
+      let host = svg;
+      if (i > 0) {
+        host = document.createElementNS(NS, "svg");
+        host.setAttribute("viewBox", svg.getAttribute("viewBox"));
+        host.setAttribute("class", svg.getAttribute("class"));
+        host.setAttribute("aria-hidden", "true");
+        wrap.appendChild(host);
+      }
+      if (run.live) host.setAttribute("data-live", "");
+      run.nodes.forEach((n) => host.appendChild(n));
+    });
+  },
+
+  shadow(P, cx, cy, z, r, opacity) {
+    if (opacity < 0.005) return "";
+    const c = k.iso([cx, cy, z], P);
+    const sx = k.iso([cx + r, cy, z], P), sy = k.iso([cx, cy + r, z], P);
+    const rx = Math.hypot(sx[0] - c[0], sx[1] - c[1]) * 1.45;
+    const ry = rx * Math.sin((k.cameraOf(P).sinE ? Math.asin(k.cameraOf(P).sinE) : 0.5));
+    return `<ellipse cx="${c[0].toFixed(1)}" cy="${(c[1] + 2).toFixed(1)}" rx="${rx.toFixed(1)}" ry="${ry.toFixed(1)}" fill="url(#lab-soft)" opacity="${opacity.toFixed(3)}"/>`;
   },
 
   range(name, label, { min, max, step, value, unit = "" }) {
@@ -145,6 +183,7 @@ const Lab = {
     new IntersectionObserver(
       (entries) => {
         visible = entries[entries.length - 1].isIntersecting;
+        stage.toggleAttribute("data-running", visible);
         if (visible) run();
       },
       { rootMargin: "80px 0px" },

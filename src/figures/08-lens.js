@@ -99,8 +99,16 @@ FIG.lens = (el, num) => {
     const tip = [xc, 0, AXZ + HOBJ];
     const gamma = -f / d;
     const imgTip = [ximg, 0, AXZ + HOBJ * gamma];
-    const scr = { x: xs - 1.2, y: -26, w: 2.4, d: 52, r: 0.6 };
-    let screen = rider(xs) + S(k.cylinder(xs, 0, 2.2, RZ + 9, 14, P, 16), { tone: "mid", crease: "none" }) + S(k.slabOf(scr, RZ + 23, 72, P, 2, 0.3), { tone: "hi", crease: "lo" });
+    if (!st.parts) {
+      const scr = { x: -1.2, y: -26, w: 2.4, d: 52, r: 0.6 };
+      const cz0 = RZ + 9, cz1 = AXZ + 2;
+      gScreen.innerHTML = `<g>${rider(0) + S(k.cylinder(0, 0, 2.2, RZ + 9, 14, P, 16), { tone: "mid", crease: "none" }) + S(k.slabOf(scr, RZ + 23, 72, P, 2, 0.3), { tone: "hi", crease: "lo" })}</g><g></g>`;
+      gCandle.innerHTML = `<g>${rider(0, true) + S(k.cylinder(0, 0, 6, cz0, 3, P, 28), { tone: "mid" }) + S(k.cylinder(0, 0, 3.6, cz0 + 3, cz1 - cz0 - 3, P, 24), { tone: "hi", lit: true, crease: "none" }) + L(k.segment([0, 0, cz1], [0, 0, cz1 + 2.4], P), { tone: "hi" })}</g><g></g>`;
+      st.parts = { scrBody: gScreen.firstChild, scrImg: gScreen.lastChild, cBody: gCandle.firstChild, cFlame: gCandle.lastChild };
+    }
+    st.parts.scrBody.setAttribute("transform", k.translateAlong(P, [xs, 0, 0]));
+    st.parts.cBody.setAttribute("transform", k.translateAlong(P, [xc, 0, 0]));
+    let screen = "";
     const defocus = Math.abs(xs - ximg) / CM;
     const sharp = real ? Math.max(0, 1 - defocus / 14) : 0;
     const fits = Math.max(0, Math.min(1, (42 - Math.abs(gamma) * HOBJ) / 14));
@@ -110,10 +118,14 @@ FIG.lens = (el, num) => {
       const zBase = AXZ + sc * 2, zTip = AXZ + sc * HOBJ;
       const fl = flamePath([xs + 1.3, 0, zBase], zTip - zBase, 2.4 * Math.max(0.4, Math.min(3, Math.abs(sc))));
       const ctr = at([xs + 1.3, 0, (zBase + zTip) / 2]);
-      blur.setAttribute("stdDeviation", (defocus * 0.5).toFixed(2));
-      screen += `<g filter="url(#soft-${num})" opacity="${((0.25 + 0.75 * sharp) * st.img).toFixed(3)}"><circle cx="${ctr[0].toFixed(1)}" cy="${ctr[1].toFixed(1)}" r="${(8 * Math.max(0.6, Math.abs(gamma))).toFixed(1)}" fill="url(#flame-${num})"/><path d="${fl}" fill="#ffb347" fill-opacity=".85" stroke="#e07a10" stroke-width=".6"/></g>`;
+      const sd = (defocus * 0.5).toFixed(1);
+      if (st.sd !== sd) {
+        blur.setAttribute("stdDeviation", sd);
+        st.sd = sd;
+      }
+      screen += `<g${defocus > 0.25 ? ` filter="url(#soft-${num})"` : ""} opacity="${((0.25 + 0.75 * sharp) * st.img).toFixed(3)}"><circle cx="${ctr[0].toFixed(1)}" cy="${ctr[1].toFixed(1)}" r="${(8 * Math.max(0.6, Math.abs(gamma))).toFixed(1)}" fill="url(#flame-${num})"/><path d="${fl}" fill="#ffb347" fill-opacity=".85" stroke="#e07a10" stroke-width=".6"/></g>`;
     }
-    gScreen.innerHTML = screen;
+    st.parts.scrImg.innerHTML = screen;
     const lensTop = [XL, 0, AXZ + HOBJ];
     const lensMid = [XL, 0, AXZ];
     const lensFoc = [XL, 0, AXZ + (HOBJ * FOC) / (FOC - d)];
@@ -130,15 +142,11 @@ FIG.lens = (el, num) => {
     const ray = ([a, b], op) => (op < 0.01 ? "" : `<path d="${k.segment(a, b, P)}" fill="none" stroke="${RAY}" stroke-width="1" stroke-linecap="round" opacity="${(0.9 * op).toFixed(3)}"/>`);
     gFront.innerHTML = rays.map((r) => ray(r, opOf(r[1]))).join("");
     gBack.innerHTML = after.map((r) => ray(r, opOf(r[0]))).join("") + after.map(([b, e]) => (opOf(b) > 0.01 ? `<g opacity="${opOf(b).toFixed(3)}">${D([at(e)], { size: 0.8, tone: "hi" })}</g>` : "")).join("");
-    const cz0 = RZ + 9, cz1 = AXZ + 2;
+    const cz1 = AXZ + 2;
     st.flick += st.dt * 4.2;
     const wob = 1 + 0.06 * Math.sin(st.flick * 7) + 0.04 * Math.sin(st.flick * 13);
     const fc = at([xc, 0, AXZ + 6]);
-    gCandle.innerHTML = rider(xc, true) +
-      S(k.cylinder(xc, 0, 6, cz0, 3, P, 28), { tone: "mid" }) +
-      S(k.cylinder(xc, 0, 3.6, cz0 + 3, cz1 - cz0 - 3, P, 24), { tone: "hi", lit: true, crease: "none" }) +
-      L(k.segment([xc, 0, cz1], [xc, 0, cz1 + 2.4], P), { tone: "hi" }) +
-      `<circle cx="${fc[0].toFixed(1)}" cy="${fc[1].toFixed(1)}" r="18" fill="url(#flame-${num})"/>` +
+    st.parts.cFlame.innerHTML = `<circle cx="${fc[0].toFixed(1)}" cy="${fc[1].toFixed(1)}" r="18" fill="url(#flame-${num})"/>` +
       `<path d="${flamePath([xc, 0, cz1 + 1.4], (AXZ + HOBJ - cz1 - 1.4) * wob, 2.6)}" fill="#ffb347" fill-opacity=".9" stroke="#e07a10" stroke-width=".7"/>`;
     const kind = !real ? "мнимое, прямое — экран пуст" : `${Math.abs(gamma) > 1.02 ? "увеличенное" : Math.abs(gamma) < 0.98 ? "уменьшенное" : "равное"}, перевёрнутое`;
     const fText = real ? (ximg < SCR_MIN ? `f = ${fmt(f, 1)} см (за скамьёй)` : `f = ${fmt(f, 1)} см`) : `f = ${fmt(f, 1)} см`;

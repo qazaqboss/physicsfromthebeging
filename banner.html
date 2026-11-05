@@ -289,6 +289,25 @@ main{width:min(1240px,100% - 32px);margin:0 auto}
 }
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal{opacity:1;transform:none;transition:none}.hero h1 em::after,.hero-figure,.hero-text>*,.quiz button,.quiz-why{animation:none!important}}
 
+.iso-layers{position:relative}
+.iso-layers>svg+svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.iso-stage[data-running] .iso-layers>svg{will-change:transform}
+@media (max-width:1020px),(pointer:coarse){
+  body{background-attachment:scroll}
+  .topbar{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--anatomy-page)}
+}
+@media (pointer:coarse){
+  .lab-seg button{padding:11px 14px;min-width:40px}
+  .lab-btn{height:42px;padding:0 20px}
+  .lab-range input{height:36px}
+  .lab-range input::-webkit-slider-thumb{width:24px;height:24px;margin-top:-11px}
+  .lab-range input::-moz-range-thumb{width:22px;height:22px}
+  .quiz button{padding:13px 16px}
+  .iso-plate:hover{box-shadow:0 0 0 1px var(--anatomy-mid)!important}
+}
+html{-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+.lab-controls button,.lab-range input,.quiz button{touch-action:manipulation}
+
 html,body{width:1200px;height:630px;overflow:hidden;margin:0}
 body{background-attachment:scroll}
 .banner{position:relative;width:1200px;height:630px;display:grid;grid-template-columns:500px 1fr;gap:28px;padding:56px 56px 52px 64px;box-sizing:border-box}
@@ -310,6 +329,7 @@ body{background-attachment:scroll}
 </style>
 </head>
 <body class="iso" data-theme="light">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><radialGradient id="lab-soft"><stop offset="0" style="stop-color:var(--anatomy-halo);stop-opacity:.9"/><stop offset=".55" style="stop-color:var(--anatomy-halo);stop-opacity:.35"/><stop offset="1" style="stop-color:var(--anatomy-halo);stop-opacity:0"/></radialGradient></defs></svg>
 <div class="banner">
   <div class="b-text">
     <div class="b-brand"><span class="brand-mark" aria-hidden="true"></span>Физика · с самого начала</div>
@@ -2264,6 +2284,7 @@ const Lab = {
     const stage = `<div class="iso-stage" tabindex="0" role="group" aria-label="${label || title}">${svg}</div>`;
     el.innerHTML = k.plateHtml({ fig, title, hint, readout, keys, caption, body: stage + (controls ? `<div class="lab-controls">${controls}</div>` : "") });
     const root = el.querySelector(".iso-figure");
+    Lab.layer(root.querySelector(".iso-stage svg"));
     return {
       root,
       stage: root.querySelector(".iso-stage"),
@@ -2275,6 +2296,43 @@ const Lab = {
         if (this.readout.textContent !== text) this.readout.textContent = text;
       },
     };
+  },
+
+  layer(svg) {
+    const NS = "http://www.w3.org/2000/svg";
+    const kids = [...svg.childNodes].filter((n) => n.nodeType === 1);
+    const runs = [];
+    kids.forEach((n) => {
+      const live = n.hasAttribute("data-part");
+      const last = runs[runs.length - 1];
+      if (last && last.live === live) last.nodes.push(n);
+      else runs.push({ live, nodes: [n] });
+    });
+    const wrap = document.createElement("div");
+    wrap.className = "iso-layers";
+    svg.parentNode.insertBefore(wrap, svg);
+    wrap.appendChild(svg);
+    runs.forEach((run, i) => {
+      let host = svg;
+      if (i > 0) {
+        host = document.createElementNS(NS, "svg");
+        host.setAttribute("viewBox", svg.getAttribute("viewBox"));
+        host.setAttribute("class", svg.getAttribute("class"));
+        host.setAttribute("aria-hidden", "true");
+        wrap.appendChild(host);
+      }
+      if (run.live) host.setAttribute("data-live", "");
+      run.nodes.forEach((n) => host.appendChild(n));
+    });
+  },
+
+  shadow(P, cx, cy, z, r, opacity) {
+    if (opacity < 0.005) return "";
+    const c = k.iso([cx, cy, z], P);
+    const sx = k.iso([cx + r, cy, z], P), sy = k.iso([cx, cy + r, z], P);
+    const rx = Math.hypot(sx[0] - c[0], sx[1] - c[1]) * 1.45;
+    const ry = rx * Math.sin((k.cameraOf(P).sinE ? Math.asin(k.cameraOf(P).sinE) : 0.5));
+    return `<ellipse cx="${c[0].toFixed(1)}" cy="${(c[1] + 2).toFixed(1)}" rx="${rx.toFixed(1)}" ry="${ry.toFixed(1)}" fill="url(#lab-soft)" opacity="${opacity.toFixed(3)}"/>`;
   },
 
   range(name, label, { min, max, step, value, unit = "" }) {
@@ -2337,6 +2395,7 @@ const Lab = {
     new IntersectionObserver(
       (entries) => {
         visible = entries[entries.length - 1].isIntersecting;
+        stage.toggleAttribute("data-running", visible);
         if (visible) run();
       },
       { rootMargin: "80px 0px" },
@@ -2488,15 +2547,34 @@ FIG.cradle = (el, num) => {
       frontD += k.segment([XS[i], RAIL_Y, PIVOT_Z - 3], top, P);
       ends.push(at(top));
     });
-    gBack.innerHTML = L(backD, { tone: "mid" });
-    gFront.innerHTML = L(frontD, { tone: "mid" }) + D(ends, { size: 0.9, tone: "hi" });
-    const order = centres.map((c, i) => i).sort((a, b) => k.depthOf(centres[a], P) - k.depthOf(centres[b], P));
     const restZ = PIVOT_Z - LEN;
-    gBalls.innerHTML = order.map((i) => {
-      const lift = Math.max(0, 1 - (centres[i][2] - restZ) / 30);
-      const moving = Math.abs(angles[i]) > 0.01;
-      return `<path class="iso-halo" d="${k.haloOf({ x: centres[i][0] - R * 0.7, y: -R * 0.7, w: R * 1.4, d: R * 1.4, r: R * 0.7 }, 0, 0.1, P)}" style="opacity:${(0.22 * lift).toFixed(3)}"/>` + Lab.ball(P, centres[i], R, { lit: moving });
-    }).join("") + st.flash.map((f) => {
+    if (!st.nodes) {
+      gBack.innerHTML = L("M0 0", { tone: "mid" });
+      gFront.innerHTML = L("M0 0", { tone: "mid" }) + `<g></g>`;
+      const shadow = Lab.shadow(P, 0, 0, 0, R * 0.8, 1);
+      const ball = Lab.ball(P, [0, 0, 0], R);
+      gBalls.innerHTML = XS.map(() => `<g>${shadow}</g>`).join("") + XS.map(() => `<g>${ball}</g>`).join("") + `<g></g>`;
+      const kids = [...gBalls.children];
+      st.nodes = { back: gBack.firstChild, front: gFront.firstChild, ends: gFront.lastChild, shadows: kids.slice(0, N), balls: kids.slice(N, 2 * N), flash: kids[2 * N], order: "" };
+    }
+    const nd = st.nodes;
+    nd.back.setAttribute("d", backD);
+    nd.front.setAttribute("d", frontD);
+    nd.ends.innerHTML = D(ends, { size: 0.9, tone: "hi" });
+    const order = centres.map((c, i) => i).sort((a, b) => k.depthOf(centres[a], P) - k.depthOf(centres[b], P));
+    const key = order.join("");
+    if (key !== nd.order) {
+      order.forEach((i) => gBalls.insertBefore(nd.balls[i], nd.flash));
+      nd.order = key;
+    }
+    centres.forEach((c, i) => {
+      const lift = Math.max(0, 1 - (c[2] - restZ) / 30);
+      nd.shadows[i].setAttribute("transform", k.translateAlong(P, [c[0], 0, 0]));
+      nd.shadows[i].setAttribute("opacity", (0.32 * lift).toFixed(3));
+      nd.balls[i].setAttribute("transform", k.translateAlong(P, c));
+      nd.balls[i].firstChild.toggleAttribute("data-lit", Math.abs(angles[i]) > 0.01);
+    });
+    nd.flash.innerHTML = st.flash.map((f) => {
       const c = at([f.x, 0, restZ]);
       const u = f.t / 0.45;
       return `<circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="${(3 + u * 16).toFixed(1)}" fill="none" stroke="var(--anatomy-hi)" stroke-width="${(1.2 * (1 - u)).toFixed(2)}" opacity="${(0.7 * (1 - u) ** 2).toFixed(3)}"/>`;
@@ -2674,8 +2752,15 @@ FIG.incline = (el, num) => {
       const ang = roll + j * Math.PI;
       return [c[0] + R * 0.98 * (Math.sin(ang) * dir[0] + Math.cos(ang) * nrm[0]), c[1] - R * 0.35, c[2] + R * 0.98 * (Math.sin(ang) * dir[2] + Math.cos(ang) * nrm[2])];
     });
-    gBall.innerHTML = `<path class="iso-halo" d="${k.haloOf({ x: c[0] - 4, y: -4, w: 8, d: 8, r: 4 }, surf(s)[2], 0.1, P)}" style="opacity:.25;filter:blur(3px)"/>` +
-      Lab.ball(P, c, R, { lit: st.phase === "roll" || st.phase === "rest" }) + D(mark.filter((m) => k.depthOf(m, P) > k.depthOf(c, P)).map(at), { size: 0.8, tone: "hi" });
+    if (!st.ballNode) {
+      gBall.innerHTML = `<g>${Lab.shadow(P, 0, 0, 0, 4.5, 0.45)}</g><g>${Lab.ball(P, [0, 0, 0], R)}</g><g></g>`;
+      st.ballNode = [...gBall.children];
+    }
+    const [shN, baN, mkN] = st.ballNode;
+    shN.setAttribute("transform", k.translateAlong(P, [c[0], 0, surf(s)[2]]));
+    baN.setAttribute("transform", k.translateAlong(P, c));
+    baN.firstChild.toggleAttribute("data-lit", st.phase === "roll" || st.phase === "rest");
+    mkN.innerHTML = D(mark.filter((m) => k.depthOf(m, P) > k.depthOf(c, P)).map(at), { size: 0.8, tone: "hi" });
     gFlash.innerHTML = st.hits.map((h) => {
       const p = surf(g.gates[h.i]);
       const q = at([p[0], 0, p[2] + 2 * R + 2]);
@@ -2826,18 +2911,21 @@ FIG.airtrack = (el, num) => {
     out.push(S(k.slabOf({ x: 130, y: -8, w: 4, d: 3, r: 0.8 }, 4, PUL[2] - 4 + 2, P, 2), { tone: "mid" }));
     return out.join("");
   }
-  function pulleyFront(turn) {
-    const F = G.frameAlong([PUL[0], -4.8, PUL[2]], [0, 1, 0]);
-    const out = [];
-    out.push(S(G.disc(0, 1.6, PR, F, P), { tone: "hi", crease: "none" }));
-    out.push(S(G.disc(1.6, 3.4, PR - 1.2, F, P), { tone: "hi", crease: "none" }));
-    out.push(S(G.disc(3.4, 5, PR, F, P), { tone: "hi", crease: "none" }));
-    out.push(L(G.spokesOf(F, 5, 1.6, PR - 1.2, 4, P, { phase: turn }), { tone: "lo" }));
-    out.push(S(G.disc(5, 6.4, 1.4, F, P), { tone: "mid" }));
-    out.push(S(k.slabOf({ x: 130, y: 5, w: 4, d: 3, r: 0.8 }, 4, PUL[2] - 4 + 2, P, 2), { tone: "mid" }));
-    out.push(S(k.slabOf({ x: 132, y: -9, w: 4, d: 18, r: 1 }, -26, 8, P, 2), { tone: "mid" }));
-    out.push(Lab.knob(P, 134, 0, 3, -32, 4, 0.3));
-    return out.join("");
+  const PF = G.frameAlong([PUL[0], -4.8, PUL[2]], [0, 1, 0]);
+  function pulleyDiscs() {
+    return [
+      S(G.disc(0, 1.6, PR, PF, P), { tone: "hi", crease: "none" }),
+      S(G.disc(1.6, 3.4, PR - 1.2, PF, P), { tone: "hi", crease: "none" }),
+      S(G.disc(3.4, 5, PR, PF, P), { tone: "hi", crease: "none" }),
+    ].join("");
+  }
+  function pulleyRest() {
+    return [
+      S(G.disc(5, 6.4, 1.4, PF, P), { tone: "mid" }),
+      S(k.slabOf({ x: 130, y: 5, w: 4, d: 3, r: 0.8 }, 4, PUL[2] - 4 + 2, P, 2), { tone: "mid" }),
+      S(k.slabOf({ x: 132, y: -9, w: 4, d: 18, r: 1 }, -26, 8, P, 2), { tone: "mid" }),
+      Lab.knob(P, 134, 0, 3, -32, 4, 0.3),
+    ].join("");
   }
 
   function glider(lit) {
@@ -2869,7 +2957,7 @@ FIG.airtrack = (el, num) => {
     width: W,
     height: H,
     label: "Воздушный трек на лабораторном столе: каретка тянется нитью через блок, на конце нити висит грузик.",
-    body: [table(), `<g data-part="hang"></g>`, pulleyBack(), track(), `<g data-part="marks"></g>`, `<g data-part="string"></g>`, `<g data-part="glider"></g>`, `<g data-part="pulley"></g>`],
+    body: [table(), `<g data-part="hang"></g>`, pulleyBack(), track(), `<g data-part="marks"></g>`, `<g data-part="string"></g>`, `<g data-part="glider"></g>`, pulleyDiscs(), `<g data-part="pulley"></g>`, pulleyRest()],
   });
 
   const ui = Lab.card(el, {
@@ -2904,9 +2992,13 @@ FIG.airtrack = (el, num) => {
     const n = Math.round(mass / 0.01);
     const sway = st.sway * Math.exp(-st.swayT / 1.4) * Math.sin(2 * Math.PI * 1.1 * st.swayT);
     const dx = sway * Math.min(1, (PUL[2] - zHang) / 60);
-    gHang.innerHTML = hanger(zHang, n, true, dx);
+    if (st.hangN !== n) {
+      gHang.innerHTML = hanger(HANG_TOP, n, true, 0);
+      st.hangN = n;
+    }
+    gHang.setAttribute("transform", k.translateAlong(P, [dx, 0, zHang - HANG_TOP]));
     gString.innerHTML = L(k.segment([x + 18, 0, HOOK_Z - 2], [PUL[0], 0, HOOK_Z], P) + k.segment([PUL[0] + PR, 0, PUL[2]], [PUL[0] + PR + dx, 0, zHang], P), { tone: "hi" });
-    gPulley.innerHTML = pulleyFront(-(st.s / UNIT) / PR);
+    gPulley.innerHTML = L(G.spokesOf(PF, 5, 1.6, PR - 1.2, 4, P, { phase: -(st.s / UNIT) / PR }), { tone: "lo" });
     const marks = [];
     for (let tm = 0; tm <= tNow + 1e-6; tm += 0.1) marks.push(at([X_START + (a * tm * tm) / 2 / UNIT, 0, TZ]));
     gMarks.innerHTML = `<g opacity="${st.fade.toFixed(3)}">${D(marks, { size: 1, tone: "hi" })}</g>`;
@@ -3070,12 +3162,22 @@ FIG.spring = (el, num) => {
   function draw() {
     const ext = st.x / MM;
     const bottom = SPRING_TOP - L0 - ext;
-    const turns = 18;
-    const h = Lab.helix(P, AX[0], AX[1], COIL_R, bottom + 2, SPRING_TOP - 2, turns, 28);
-    const lo = load(bottom, n);
-    gBack.innerHTML = L(h.back, { tone: "lo" }) + S(k.cylinder(AX[0], AX[1], COIL_R + 0.8, SPRING_TOP - 2, 2, P, 24), { tone: "mid" });
-    gLoad.innerHTML = lo.svg;
-    gFront.innerHTML = L(h.front, { tone: "hi" }) + S(k.cylinder(AX[0], AX[1], COIL_R + 0.8, bottom, 2, P, 24), { tone: "mid" });
+    const h = Lab.helix(P, AX[0], AX[1], COIL_R, bottom + 2, SPRING_TOP - 2, 18, 20);
+    const REF = SPRING_TOP - L0;
+    if (!st.built) {
+      gBack.innerHTML = L("M0 0", { tone: "lo" }) + S(k.cylinder(AX[0], AX[1], COIL_R + 0.8, SPRING_TOP - 2, 2, P, 24), { tone: "mid" });
+      gFront.innerHTML = L("M0 0", { tone: "hi" }) + `<g>${S(k.cylinder(AX[0], AX[1], COIL_R + 0.8, REF, 2, P, 24), { tone: "mid" })}</g>`;
+      st.built = { back: gBack.firstChild, front: gFront.firstChild, collar: gFront.lastChild };
+    }
+    if (st.loadN !== n) {
+      gLoad.innerHTML = load(REF, n).svg;
+      st.loadN = n;
+    }
+    const move = k.translateAlong(P, [0, 0, bottom - REF]);
+    gLoad.setAttribute("transform", move);
+    st.built.collar.setAttribute("transform", move);
+    st.built.back.setAttribute("d", h.back);
+    st.built.front.setAttribute("d", h.front);
     const m = massOf();
     const T = 2 * Math.PI * Math.sqrt(m / K);
     ui.say(`m = ${Math.round(m * 1000)} г · x = ${fmt(st.x * 100, 1)} см · F = ${fmt(K * st.x)} Н · T = ${fmt(T)} с`);
@@ -3220,7 +3322,7 @@ FIG.melde = (el, num) => {
     const gain = st.amps[lead - 1];
     const c = Math.cos(st.phase);
     const pts = [], up = [], dn = [];
-    const N = 140;
+    const N = 96;
     for (let i = 0; i <= N; i++) {
       const u = i / N;
       const x = XA + (XB - XA) * u;
@@ -3234,7 +3336,7 @@ FIG.melde = (el, num) => {
     for (let j = 1; j < lead; j++) nodes.push(at([XA + ((XB - XA) * j) / lead, 0, SZ]));
     const envOp = Math.max(0, Math.min(1, (gain - 0.08) / 0.3));
     const nodeOp = Math.max(0, Math.min(1, (share - 0.7) / 0.25)) * envOp;
-    gString.innerHTML = `<g opacity="${envOp.toFixed(3)}">${L(k.pathOf(up) + k.pathOf(dn), { tone: "faint" })}</g>` + L(k.pathOf(pts), { tone: "lit" }) + L(k.segment([XB + PR, 0, SZ - PR], [XB + PR, 0, SZ - PR - 6], P), { tone: "hi" }) + `<g opacity="${nodeOp.toFixed(3)}">${D(nodes, { size: 1, tone: "hi" })}</g>` + D([at([XA, 0, SZ]), at([XB, 0, SZ])], { size: 0.9, tone: "hi" });
+    gString.innerHTML = (envOp > 0.01 ? `<g opacity="${envOp.toFixed(3)}">${L(k.pathOf(up) + k.pathOf(dn), { tone: "faint" })}</g>` : "") + L(k.pathOf(pts), { tone: "lit" }) + L(k.segment([XB + PR, 0, SZ - PR], [XB + PR, 0, SZ - PR - 6], P), { tone: "hi" }) + `<g opacity="${nodeOp.toFixed(3)}">${D(nodes, { size: 1, tone: "hi" })}</g>` + D([at([XA, 0, SZ]), at([XB, 0, SZ])], { size: 0.9, tone: "hi" });
     const wob = 0.6 * Math.sin(st.phase * 3);
     gBlade.innerHTML = S(k.slabOf({ x: XA - 18, y: -1.5, w: 3, d: 3, r: 0.6 }, 30, SZ - 30 + 1.5, P, 2), { tone: "mid" }) +
       S(k.slabOf({ x: XA - 15.4 + wob * 0, y: -1, w: 16, d: 2, r: 0.5 }, SZ - 1 + wob, 2, P, 2), { tone: "hi", lit: true });
@@ -3418,17 +3520,36 @@ FIG.piston = (el, num) => {
         q.d[2] = -Math.abs(q.d[2]);
       }
     });
-    const sorted = parts.map((q) => q.p).sort((a, b) => k.depthOf(a, P) - k.depthOf(b, P));
-    gGas.innerHTML = D(sorted.map(at), { size: 1.05, tone: "hi" });
-    gPiston.innerHTML = piston(z);
+    if (!st.dots) {
+      gGas.innerHTML = D(parts.map((q) => at(q.p)), { size: 1.05, tone: "hi" });
+      st.dots = [...gGas.querySelectorAll("circle")];
+    }
+    parts.forEach((q, i) => {
+      const [x, y] = at(q.p);
+      st.dots[i].setAttribute("cx", x.toFixed(1));
+      st.dots[i].setAttribute("cy", y.toFixed(1));
+    });
+    if (!st.pistonBuilt) {
+      gPiston.innerHTML = piston(GZ + H0);
+      st.pistonBuilt = true;
+    }
+    gPiston.setAttribute("transform", k.translateAlong(P, [0, 0, z - GZ - H0]));
     const heat = st.glow;
-    const coil = [];
-    for (let i = 0; i < 3; i++) coil.push(k.ring(0, 0, 30.5 + i * 2.6, HZ, P, 64));
-    gCoil.innerHTML = `<g opacity="${(0.12 + 0.88 * heat).toFixed(2)}">${L(coil.join(""), { tone: heat > 0.02 ? "red" : "lo" })}</g>`;
-    const ga = -Math.PI * 0.75 + (PRESSURE / 200000) * Math.PI * 1.5;
-    gGauge.innerHTML = L(k.lineOnTop([GAUGE[0] - Math.sin(ga) * 2, GAUGE[1] + Math.cos(ga) * 2], [GAUGE[0] + Math.sin(ga) * 9, GAUGE[1] - Math.cos(ga) * 9], GZG + 5.1, P), { tone: "lit", free: "start" }) + D([at([GAUGE[0], GAUGE[1], GZG + 5.1])], { size: 0.8, tone: "hi" });
+    if (!st.coil) {
+      const coil = [];
+      for (let i = 0; i < 3; i++) coil.push(k.ring(0, 0, 30.5 + i * 2.6, HZ, P, 64));
+      gCoil.innerHTML = `<g>${L(coil.join(""), { tone: "red" })}</g>`;
+      st.coil = gCoil.firstChild;
+      const ga = -Math.PI * 0.75 + (PRESSURE / 200000) * Math.PI * 1.5;
+      gGauge.innerHTML = L(k.lineOnTop([GAUGE[0] - Math.sin(ga) * 2, GAUGE[1] + Math.cos(ga) * 2], [GAUGE[0] + Math.sin(ga) * 9, GAUGE[1] - Math.cos(ga) * 9], GZG + 5.1, P), { tone: "lit", free: "start" }) + D([at([GAUGE[0], GAUGE[1], GZG + 5.1])], { size: 0.8, tone: "hi" });
+    }
+    st.coil.setAttribute("opacity", (0.1 + 0.9 * heat).toFixed(3));
+    st.coil.firstChild.setAttribute("data-tone", heat > 0.02 ? "red" : "lo");
     const text = `${Math.round(st.T)} K`;
-    gDisp.innerHTML = k.faceTextSvg(k.sideMatrix([DISP.x + DISP.w / 2, DISP.y + DISP.d], 8.2, P, "left"), text, { size: 7, tone: "hi", anchor: "middle" });
+    if (st.text !== text) {
+      gDisp.innerHTML = k.faceTextSvg(k.sideMatrix([DISP.x + DISP.w / 2, DISP.y + DISP.d], 8.2, P, "left"), text, { size: 7, tone: "hi", anchor: "middle" });
+      st.text = text;
+    }
     const V = AREA * (h / 1000) * 1e6;
     ui.say(`T = ${Math.round(st.T - T0)} °C = ${Math.round(st.T)} K · V = ${fmt(V, 0)} см³ · V/T = ${fmt(V / st.T, 3)} · p = ${fmt(PRESSURE / 1000, 1)} кПа`);
   }
@@ -3568,7 +3689,7 @@ FIG.ohm = (el, num) => {
     label: "Электрическая цепь на монтажной плате: батарея из трёх элементов, амперметр, лампа, реостат с ползунком и вольтметр, подключённый параллельно лампе.",
     body: [
       Lab.plate(P, BOARD, { label: { x: -116, y: 64, w: 30, d: 12 } }),
-      routes.main.map((r) => wire(r, true)).join(""),
+      `<g data-part="wires">${routes.main.map((r) => wire(r, true)).join("")}</g>`,
       routes.volt.map((r) => wire(r, false)).join(""),
       battery(), amm.svg, vol.svg, `<g data-part="needles"></g>`,
       rheostat(), `<g data-part="slider"></g>`, lampBase(), `<g data-part="lamp"></g>`,
@@ -3592,7 +3713,7 @@ FIG.ohm = (el, num) => {
   const defs = `<defs><radialGradient id="glow-${num}"><stop offset="0" stop-color="#ffd27a" stop-opacity=".95"/><stop offset=".35" stop-color="#ffb347" stop-opacity=".45"/><stop offset="1" stop-color="#ff9a2e" stop-opacity="0"/></radialGradient></defs>`;
   ui.svg.insertAdjacentHTML("afterbegin", defs);
   const gNeedles = ui.part("needles"), gSlider = ui.part("slider"), gLamp = ui.part("lamp");
-  const flows = [...ui.svg.querySelectorAll("[data-current]")];
+  const flows = [...ui.root.querySelectorAll("[data-current]")];
   let target = 4;
   const st = { R: 4, tour: true, tourT: 0, a: { x: 0, v: 0 }, u: { x: 0, v: 0 }, heat: 0, flow: 0 };
   flows.forEach((f) => (f.style.animation = "none"));
@@ -3623,18 +3744,25 @@ FIG.ohm = (el, num) => {
     const glow = st.heat;
     gNeedles.innerHTML = needle([AMM.x + AMM.w / 2, AMM.y + AMM.d / 2 + 4], st.a.x) + needle([VOL.x + VOL.w / 2, VOL.y + VOL.d / 2 + 4], st.u.x);
     const xs = SLIDE[0] + (st.R / RMAX) * (SLIDE[1] - SLIDE[0]);
-    gSlider.innerHTML = slider(xs);
+    if (!st.sliderBuilt) {
+      gSlider.innerHTML = `<g>${slider(0)}</g>`;
+      st.sliderBuilt = gSlider.firstChild;
+    }
+    st.sliderBuilt.setAttribute("transform", k.translateAlong(P, [xs, 0, 0]));
     const c = [LAMP[0], LAMP[1], 30];
     const ctr = at(c);
     const bulb = G.sphereOf(c, 12, P);
     const fil = k.pathOf([[-4, 26], [-2.5, 32], [-1, 28], [0.5, 32], [2, 28], [3.5, 32], [5, 26]].map(([dx, z]) => at([c[0] + dx * 0.7, c[1] - dx * 0.7, z])));
     const rad = 40 + glow * 50;
+    if (st.lampAt === undefined || Math.abs(st.lampAt - glow) > 0.003) {
+    st.lampAt = glow;
     gLamp.innerHTML = `<circle cx="${ctr[0].toFixed(1)}" cy="${ctr[1].toFixed(1)}" r="${rad.toFixed(1)}" fill="url(#glow-${num})" opacity="${(glow ** 0.8).toFixed(3)}"/>` +
       `<path d="${bulb.fill}" style="fill:var(--anatomy-card);opacity:.55"/>` +
       L(k.segment([c[0] - 3, c[1] + 3, 18], [c[0] - 3, c[1] + 3, 26], P) + k.segment([c[0] + 3, c[1] - 3, 18], [c[0] + 3, c[1] - 3, 26], P), { tone: "mid" }) +
       `<path d="${fil}" fill="none" stroke="${glow > 0.05 ? "#ff8a1f" : "var(--anatomy-mid)"}" stroke-width="${(0.8 + glow).toFixed(2)}" stroke-linejoin="round"/>` +
       `<path class="iso-line" data-tone="hi" d="${bulb.outline}"/>` +
       `<circle cx="${ctr[0].toFixed(1)}" cy="${ctr[1].toFixed(1)}" r="${(rad * 0.35).toFixed(1)}" fill="url(#glow-${num})" opacity="${(glow * 0.9).toFixed(3)}"/>`;
+    }
     const off = (-st.flow).toFixed(2);
     flows.forEach((f) => f.setAttribute("stroke-dashoffset", off));
     ui.say(`R = ${fmt(st.R, 1)} Ом · I = ${fmt(I)} А · Uл = ${fmt(UL)} В · P = ${fmt(Pw)} Вт`);
@@ -3778,8 +3906,16 @@ FIG.lens = (el, num) => {
     const tip = [xc, 0, AXZ + HOBJ];
     const gamma = -f / d;
     const imgTip = [ximg, 0, AXZ + HOBJ * gamma];
-    const scr = { x: xs - 1.2, y: -26, w: 2.4, d: 52, r: 0.6 };
-    let screen = rider(xs) + S(k.cylinder(xs, 0, 2.2, RZ + 9, 14, P, 16), { tone: "mid", crease: "none" }) + S(k.slabOf(scr, RZ + 23, 72, P, 2, 0.3), { tone: "hi", crease: "lo" });
+    if (!st.parts) {
+      const scr = { x: -1.2, y: -26, w: 2.4, d: 52, r: 0.6 };
+      const cz0 = RZ + 9, cz1 = AXZ + 2;
+      gScreen.innerHTML = `<g>${rider(0) + S(k.cylinder(0, 0, 2.2, RZ + 9, 14, P, 16), { tone: "mid", crease: "none" }) + S(k.slabOf(scr, RZ + 23, 72, P, 2, 0.3), { tone: "hi", crease: "lo" })}</g><g></g>`;
+      gCandle.innerHTML = `<g>${rider(0, true) + S(k.cylinder(0, 0, 6, cz0, 3, P, 28), { tone: "mid" }) + S(k.cylinder(0, 0, 3.6, cz0 + 3, cz1 - cz0 - 3, P, 24), { tone: "hi", lit: true, crease: "none" }) + L(k.segment([0, 0, cz1], [0, 0, cz1 + 2.4], P), { tone: "hi" })}</g><g></g>`;
+      st.parts = { scrBody: gScreen.firstChild, scrImg: gScreen.lastChild, cBody: gCandle.firstChild, cFlame: gCandle.lastChild };
+    }
+    st.parts.scrBody.setAttribute("transform", k.translateAlong(P, [xs, 0, 0]));
+    st.parts.cBody.setAttribute("transform", k.translateAlong(P, [xc, 0, 0]));
+    let screen = "";
     const defocus = Math.abs(xs - ximg) / CM;
     const sharp = real ? Math.max(0, 1 - defocus / 14) : 0;
     const fits = Math.max(0, Math.min(1, (42 - Math.abs(gamma) * HOBJ) / 14));
@@ -3789,10 +3925,14 @@ FIG.lens = (el, num) => {
       const zBase = AXZ + sc * 2, zTip = AXZ + sc * HOBJ;
       const fl = flamePath([xs + 1.3, 0, zBase], zTip - zBase, 2.4 * Math.max(0.4, Math.min(3, Math.abs(sc))));
       const ctr = at([xs + 1.3, 0, (zBase + zTip) / 2]);
-      blur.setAttribute("stdDeviation", (defocus * 0.5).toFixed(2));
-      screen += `<g filter="url(#soft-${num})" opacity="${((0.25 + 0.75 * sharp) * st.img).toFixed(3)}"><circle cx="${ctr[0].toFixed(1)}" cy="${ctr[1].toFixed(1)}" r="${(8 * Math.max(0.6, Math.abs(gamma))).toFixed(1)}" fill="url(#flame-${num})"/><path d="${fl}" fill="#ffb347" fill-opacity=".85" stroke="#e07a10" stroke-width=".6"/></g>`;
+      const sd = (defocus * 0.5).toFixed(1);
+      if (st.sd !== sd) {
+        blur.setAttribute("stdDeviation", sd);
+        st.sd = sd;
+      }
+      screen += `<g${defocus > 0.25 ? ` filter="url(#soft-${num})"` : ""} opacity="${((0.25 + 0.75 * sharp) * st.img).toFixed(3)}"><circle cx="${ctr[0].toFixed(1)}" cy="${ctr[1].toFixed(1)}" r="${(8 * Math.max(0.6, Math.abs(gamma))).toFixed(1)}" fill="url(#flame-${num})"/><path d="${fl}" fill="#ffb347" fill-opacity=".85" stroke="#e07a10" stroke-width=".6"/></g>`;
     }
-    gScreen.innerHTML = screen;
+    st.parts.scrImg.innerHTML = screen;
     const lensTop = [XL, 0, AXZ + HOBJ];
     const lensMid = [XL, 0, AXZ];
     const lensFoc = [XL, 0, AXZ + (HOBJ * FOC) / (FOC - d)];
@@ -3809,15 +3949,11 @@ FIG.lens = (el, num) => {
     const ray = ([a, b], op) => (op < 0.01 ? "" : `<path d="${k.segment(a, b, P)}" fill="none" stroke="${RAY}" stroke-width="1" stroke-linecap="round" opacity="${(0.9 * op).toFixed(3)}"/>`);
     gFront.innerHTML = rays.map((r) => ray(r, opOf(r[1]))).join("");
     gBack.innerHTML = after.map((r) => ray(r, opOf(r[0]))).join("") + after.map(([b, e]) => (opOf(b) > 0.01 ? `<g opacity="${opOf(b).toFixed(3)}">${D([at(e)], { size: 0.8, tone: "hi" })}</g>` : "")).join("");
-    const cz0 = RZ + 9, cz1 = AXZ + 2;
+    const cz1 = AXZ + 2;
     st.flick += st.dt * 4.2;
     const wob = 1 + 0.06 * Math.sin(st.flick * 7) + 0.04 * Math.sin(st.flick * 13);
     const fc = at([xc, 0, AXZ + 6]);
-    gCandle.innerHTML = rider(xc, true) +
-      S(k.cylinder(xc, 0, 6, cz0, 3, P, 28), { tone: "mid" }) +
-      S(k.cylinder(xc, 0, 3.6, cz0 + 3, cz1 - cz0 - 3, P, 24), { tone: "hi", lit: true, crease: "none" }) +
-      L(k.segment([xc, 0, cz1], [xc, 0, cz1 + 2.4], P), { tone: "hi" }) +
-      `<circle cx="${fc[0].toFixed(1)}" cy="${fc[1].toFixed(1)}" r="18" fill="url(#flame-${num})"/>` +
+    st.parts.cFlame.innerHTML = `<circle cx="${fc[0].toFixed(1)}" cy="${fc[1].toFixed(1)}" r="18" fill="url(#flame-${num})"/>` +
       `<path d="${flamePath([xc, 0, cz1 + 1.4], (AXZ + HOBJ - cz1 - 1.4) * wob, 2.6)}" fill="#ffb347" fill-opacity=".9" stroke="#e07a10" stroke-width=".7"/>`;
     const kind = !real ? "мнимое, прямое — экран пуст" : `${Math.abs(gamma) > 1.02 ? "увеличенное" : Math.abs(gamma) < 0.98 ? "уменьшенное" : "равное"}, перевёрнутое`;
     const fText = real ? (ximg < SCR_MIN ? `f = ${fmt(f, 1)} см (за скамьёй)` : `f = ${fmt(f, 1)} см`) : `f = ${fmt(f, 1)} см`;

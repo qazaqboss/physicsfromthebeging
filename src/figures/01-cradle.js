@@ -92,15 +92,34 @@ FIG.cradle = (el, num) => {
       frontD += k.segment([XS[i], RAIL_Y, PIVOT_Z - 3], top, P);
       ends.push(at(top));
     });
-    gBack.innerHTML = L(backD, { tone: "mid" });
-    gFront.innerHTML = L(frontD, { tone: "mid" }) + D(ends, { size: 0.9, tone: "hi" });
-    const order = centres.map((c, i) => i).sort((a, b) => k.depthOf(centres[a], P) - k.depthOf(centres[b], P));
     const restZ = PIVOT_Z - LEN;
-    gBalls.innerHTML = order.map((i) => {
-      const lift = Math.max(0, 1 - (centres[i][2] - restZ) / 30);
-      const moving = Math.abs(angles[i]) > 0.01;
-      return `<path class="iso-halo" d="${k.haloOf({ x: centres[i][0] - R * 0.7, y: -R * 0.7, w: R * 1.4, d: R * 1.4, r: R * 0.7 }, 0, 0.1, P)}" style="opacity:${(0.22 * lift).toFixed(3)}"/>` + Lab.ball(P, centres[i], R, { lit: moving });
-    }).join("") + st.flash.map((f) => {
+    if (!st.nodes) {
+      gBack.innerHTML = L("M0 0", { tone: "mid" });
+      gFront.innerHTML = L("M0 0", { tone: "mid" }) + `<g></g>`;
+      const shadow = Lab.shadow(P, 0, 0, 0, R * 0.8, 1);
+      const ball = Lab.ball(P, [0, 0, 0], R);
+      gBalls.innerHTML = XS.map(() => `<g>${shadow}</g>`).join("") + XS.map(() => `<g>${ball}</g>`).join("") + `<g></g>`;
+      const kids = [...gBalls.children];
+      st.nodes = { back: gBack.firstChild, front: gFront.firstChild, ends: gFront.lastChild, shadows: kids.slice(0, N), balls: kids.slice(N, 2 * N), flash: kids[2 * N], order: "" };
+    }
+    const nd = st.nodes;
+    nd.back.setAttribute("d", backD);
+    nd.front.setAttribute("d", frontD);
+    nd.ends.innerHTML = D(ends, { size: 0.9, tone: "hi" });
+    const order = centres.map((c, i) => i).sort((a, b) => k.depthOf(centres[a], P) - k.depthOf(centres[b], P));
+    const key = order.join("");
+    if (key !== nd.order) {
+      order.forEach((i) => gBalls.insertBefore(nd.balls[i], nd.flash));
+      nd.order = key;
+    }
+    centres.forEach((c, i) => {
+      const lift = Math.max(0, 1 - (c[2] - restZ) / 30);
+      nd.shadows[i].setAttribute("transform", k.translateAlong(P, [c[0], 0, 0]));
+      nd.shadows[i].setAttribute("opacity", (0.32 * lift).toFixed(3));
+      nd.balls[i].setAttribute("transform", k.translateAlong(P, c));
+      nd.balls[i].firstChild.toggleAttribute("data-lit", Math.abs(angles[i]) > 0.01);
+    });
+    nd.flash.innerHTML = st.flash.map((f) => {
       const c = at([f.x, 0, restZ]);
       const u = f.t / 0.45;
       return `<circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="${(3 + u * 16).toFixed(1)}" fill="none" stroke="var(--anatomy-hi)" stroke-width="${(1.2 * (1 - u)).toFixed(2)}" opacity="${(0.7 * (1 - u) ** 2).toFixed(3)}"/>`;

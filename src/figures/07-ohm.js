@@ -104,7 +104,7 @@ FIG.ohm = (el, num) => {
     label: "Электрическая цепь на монтажной плате: батарея из трёх элементов, амперметр, лампа, реостат с ползунком и вольтметр, подключённый параллельно лампе.",
     body: [
       Lab.plate(P, BOARD, { label: { x: -116, y: 64, w: 30, d: 12 } }),
-      routes.main.map((r) => wire(r, true)).join(""),
+      `<g data-part="wires">${routes.main.map((r) => wire(r, true)).join("")}</g>`,
       routes.volt.map((r) => wire(r, false)).join(""),
       battery(), amm.svg, vol.svg, `<g data-part="needles"></g>`,
       rheostat(), `<g data-part="slider"></g>`, lampBase(), `<g data-part="lamp"></g>`,
@@ -128,7 +128,7 @@ FIG.ohm = (el, num) => {
   const defs = `<defs><radialGradient id="glow-${num}"><stop offset="0" stop-color="#ffd27a" stop-opacity=".95"/><stop offset=".35" stop-color="#ffb347" stop-opacity=".45"/><stop offset="1" stop-color="#ff9a2e" stop-opacity="0"/></radialGradient></defs>`;
   ui.svg.insertAdjacentHTML("afterbegin", defs);
   const gNeedles = ui.part("needles"), gSlider = ui.part("slider"), gLamp = ui.part("lamp");
-  const flows = [...ui.svg.querySelectorAll("[data-current]")];
+  const flows = [...ui.root.querySelectorAll("[data-current]")];
   let target = 4;
   const st = { R: 4, tour: true, tourT: 0, a: { x: 0, v: 0 }, u: { x: 0, v: 0 }, heat: 0, flow: 0 };
   flows.forEach((f) => (f.style.animation = "none"));
@@ -159,18 +159,25 @@ FIG.ohm = (el, num) => {
     const glow = st.heat;
     gNeedles.innerHTML = needle([AMM.x + AMM.w / 2, AMM.y + AMM.d / 2 + 4], st.a.x) + needle([VOL.x + VOL.w / 2, VOL.y + VOL.d / 2 + 4], st.u.x);
     const xs = SLIDE[0] + (st.R / RMAX) * (SLIDE[1] - SLIDE[0]);
-    gSlider.innerHTML = slider(xs);
+    if (!st.sliderBuilt) {
+      gSlider.innerHTML = `<g>${slider(0)}</g>`;
+      st.sliderBuilt = gSlider.firstChild;
+    }
+    st.sliderBuilt.setAttribute("transform", k.translateAlong(P, [xs, 0, 0]));
     const c = [LAMP[0], LAMP[1], 30];
     const ctr = at(c);
     const bulb = G.sphereOf(c, 12, P);
     const fil = k.pathOf([[-4, 26], [-2.5, 32], [-1, 28], [0.5, 32], [2, 28], [3.5, 32], [5, 26]].map(([dx, z]) => at([c[0] + dx * 0.7, c[1] - dx * 0.7, z])));
     const rad = 40 + glow * 50;
+    if (st.lampAt === undefined || Math.abs(st.lampAt - glow) > 0.003) {
+    st.lampAt = glow;
     gLamp.innerHTML = `<circle cx="${ctr[0].toFixed(1)}" cy="${ctr[1].toFixed(1)}" r="${rad.toFixed(1)}" fill="url(#glow-${num})" opacity="${(glow ** 0.8).toFixed(3)}"/>` +
       `<path d="${bulb.fill}" style="fill:var(--anatomy-card);opacity:.55"/>` +
       L(k.segment([c[0] - 3, c[1] + 3, 18], [c[0] - 3, c[1] + 3, 26], P) + k.segment([c[0] + 3, c[1] - 3, 18], [c[0] + 3, c[1] - 3, 26], P), { tone: "mid" }) +
       `<path d="${fil}" fill="none" stroke="${glow > 0.05 ? "#ff8a1f" : "var(--anatomy-mid)"}" stroke-width="${(0.8 + glow).toFixed(2)}" stroke-linejoin="round"/>` +
       `<path class="iso-line" data-tone="hi" d="${bulb.outline}"/>` +
       `<circle cx="${ctr[0].toFixed(1)}" cy="${ctr[1].toFixed(1)}" r="${(rad * 0.35).toFixed(1)}" fill="url(#glow-${num})" opacity="${(glow * 0.9).toFixed(3)}"/>`;
+    }
     const off = (-st.flow).toFixed(2);
     flows.forEach((f) => f.setAttribute("stroke-dashoffset", off));
     ui.say(`R = ${fmt(st.R, 1)} Ом · I = ${fmt(I)} А · Uл = ${fmt(UL)} В · P = ${fmt(Pw)} Вт`);

@@ -138,17 +138,36 @@ FIG.piston = (el, num) => {
         q.d[2] = -Math.abs(q.d[2]);
       }
     });
-    const sorted = parts.map((q) => q.p).sort((a, b) => k.depthOf(a, P) - k.depthOf(b, P));
-    gGas.innerHTML = D(sorted.map(at), { size: 1.05, tone: "hi" });
-    gPiston.innerHTML = piston(z);
+    if (!st.dots) {
+      gGas.innerHTML = D(parts.map((q) => at(q.p)), { size: 1.05, tone: "hi" });
+      st.dots = [...gGas.querySelectorAll("circle")];
+    }
+    parts.forEach((q, i) => {
+      const [x, y] = at(q.p);
+      st.dots[i].setAttribute("cx", x.toFixed(1));
+      st.dots[i].setAttribute("cy", y.toFixed(1));
+    });
+    if (!st.pistonBuilt) {
+      gPiston.innerHTML = piston(GZ + H0);
+      st.pistonBuilt = true;
+    }
+    gPiston.setAttribute("transform", k.translateAlong(P, [0, 0, z - GZ - H0]));
     const heat = st.glow;
-    const coil = [];
-    for (let i = 0; i < 3; i++) coil.push(k.ring(0, 0, 30.5 + i * 2.6, HZ, P, 64));
-    gCoil.innerHTML = `<g opacity="${(0.12 + 0.88 * heat).toFixed(2)}">${L(coil.join(""), { tone: heat > 0.02 ? "red" : "lo" })}</g>`;
-    const ga = -Math.PI * 0.75 + (PRESSURE / 200000) * Math.PI * 1.5;
-    gGauge.innerHTML = L(k.lineOnTop([GAUGE[0] - Math.sin(ga) * 2, GAUGE[1] + Math.cos(ga) * 2], [GAUGE[0] + Math.sin(ga) * 9, GAUGE[1] - Math.cos(ga) * 9], GZG + 5.1, P), { tone: "lit", free: "start" }) + D([at([GAUGE[0], GAUGE[1], GZG + 5.1])], { size: 0.8, tone: "hi" });
+    if (!st.coil) {
+      const coil = [];
+      for (let i = 0; i < 3; i++) coil.push(k.ring(0, 0, 30.5 + i * 2.6, HZ, P, 64));
+      gCoil.innerHTML = `<g>${L(coil.join(""), { tone: "red" })}</g>`;
+      st.coil = gCoil.firstChild;
+      const ga = -Math.PI * 0.75 + (PRESSURE / 200000) * Math.PI * 1.5;
+      gGauge.innerHTML = L(k.lineOnTop([GAUGE[0] - Math.sin(ga) * 2, GAUGE[1] + Math.cos(ga) * 2], [GAUGE[0] + Math.sin(ga) * 9, GAUGE[1] - Math.cos(ga) * 9], GZG + 5.1, P), { tone: "lit", free: "start" }) + D([at([GAUGE[0], GAUGE[1], GZG + 5.1])], { size: 0.8, tone: "hi" });
+    }
+    st.coil.setAttribute("opacity", (0.1 + 0.9 * heat).toFixed(3));
+    st.coil.firstChild.setAttribute("data-tone", heat > 0.02 ? "red" : "lo");
     const text = `${Math.round(st.T)} K`;
-    gDisp.innerHTML = k.faceTextSvg(k.sideMatrix([DISP.x + DISP.w / 2, DISP.y + DISP.d], 8.2, P, "left"), text, { size: 7, tone: "hi", anchor: "middle" });
+    if (st.text !== text) {
+      gDisp.innerHTML = k.faceTextSvg(k.sideMatrix([DISP.x + DISP.w / 2, DISP.y + DISP.d], 8.2, P, "left"), text, { size: 7, tone: "hi", anchor: "middle" });
+      st.text = text;
+    }
     const V = AREA * (h / 1000) * 1e6;
     ui.say(`T = ${Math.round(st.T - T0)} °C = ${Math.round(st.T)} K · V = ${fmt(V, 0)} см³ · V/T = ${fmt(V / st.T, 3)} · p = ${fmt(PRESSURE / 1000, 1)} кПа`);
   }

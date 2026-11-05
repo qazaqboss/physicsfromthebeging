@@ -96,7 +96,7 @@ FIG.melde = (el, num) => {
     const gain = st.amps[lead - 1];
     const c = Math.cos(st.phase);
     const pts = [], up = [], dn = [];
-    const N = 140;
+    const N = 96;
     for (let i = 0; i <= N; i++) {
       const u = i / N;
       const x = XA + (XB - XA) * u;
@@ -110,7 +110,7 @@ FIG.melde = (el, num) => {
     for (let j = 1; j < lead; j++) nodes.push(at([XA + ((XB - XA) * j) / lead, 0, SZ]));
     const envOp = Math.max(0, Math.min(1, (gain - 0.08) / 0.3));
     const nodeOp = Math.max(0, Math.min(1, (share - 0.7) / 0.25)) * envOp;
-    gString.innerHTML = `<g opacity="${envOp.toFixed(3)}">${L(k.pathOf(up) + k.pathOf(dn), { tone: "faint" })}</g>` + L(k.pathOf(pts), { tone: "lit" }) + L(k.segment([XB + PR, 0, SZ - PR], [XB + PR, 0, SZ - PR - 6], P), { tone: "hi" }) + `<g opacity="${nodeOp.toFixed(3)}">${D(nodes, { size: 1, tone: "hi" })}</g>` + D([at([XA, 0, SZ]), at([XB, 0, SZ])], { size: 0.9, tone: "hi" });
+    gString.innerHTML = (envOp > 0.01 ? `<g opacity="${envOp.toFixed(3)}">${L(k.pathOf(up) + k.pathOf(dn), { tone: "faint" })}</g>` : "") + L(k.pathOf(pts), { tone: "lit" }) + L(k.segment([XB + PR, 0, SZ - PR], [XB + PR, 0, SZ - PR - 6], P), { tone: "hi" }) + `<g opacity="${nodeOp.toFixed(3)}">${D(nodes, { size: 1, tone: "hi" })}</g>` + D([at([XA, 0, SZ]), at([XB, 0, SZ])], { size: 0.9, tone: "hi" });
     const wob = 0.6 * Math.sin(st.phase * 3);
     gBlade.innerHTML = S(k.slabOf({ x: XA - 18, y: -1.5, w: 3, d: 3, r: 0.6 }, 30, SZ - 30 + 1.5, P, 2), { tone: "mid" }) +
       S(k.slabOf({ x: XA - 15.4 + wob * 0, y: -1, w: 16, d: 2, r: 0.5 }, SZ - 1 + wob, 2, P, 2), { tone: "hi", lit: true });
