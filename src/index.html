@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Физика с самого начала — интерактивная лаборатория</title>
+<meta name="description" content="Интерактивный учебник физики: восемь живых опытов — от падения шара до линзы. Каждый прибор можно потрогать, каждое число вычислено честно.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>/*__CSS__*/</style>
+</head>
+<body class="iso" data-theme="light">
+
+<header class="topbar">
+  <a class="brand" href="#top"><span class="brand-mark" aria-hidden="true"></span><span>Физика<span class="brand-dim"> · с самого начала</span></span></a>
+  <nav class="chapters-nav" aria-label="Главы">
+    <a href="#ch1" data-nav="ch1">01</a><a href="#ch2" data-nav="ch2">02</a><a href="#ch3" data-nav="ch3">03</a><a href="#ch4" data-nav="ch4">04</a><a href="#ch5" data-nav="ch5">05</a><a href="#ch6" data-nav="ch6">06</a><a href="#ch7" data-nav="ch7">07</a><a href="#ch8" data-nav="ch8">08</a>
+  </nav>
+  <div class="topbar-right">
+    <span class="progress-pill" title="Решено вопросов"><span data-progress>0</span>/8</span>
+    <button type="button" class="theme-toggle" data-theme-toggle aria-label="Сменить тему"><span aria-hidden="true"></span></button>
+  </div>
+  <div class="scroll-line" aria-hidden="true"><span data-scroll-line></span></div>
+</header>
+
+<main id="top">
+
+<section class="hero">
+  <div class="hero-text">
+    <p class="eyebrow">Интерактивная лаборатория · 8 опытов</p>
+    <h1>Физика,<br>которую можно<br><em>потрогать</em></h1>
+    <p class="lead">Не картинки со стрелочками, а настоящие приборы на лабораторном столе. Отпускайте шары, крутите ручки, двигайте линзу — и смотрите, как числа на табло следуют за законами природы.</p>
+    <div class="hero-cta">
+      <a class="btn-primary" href="#ch1">Начать с первого опыта</a>
+      <a class="btn-ghost" href="#map">Карта курса</a>
+    </div>
+    <dl class="hero-stats">
+      <div><dt>8</dt><dd>живых приборов</dd></div>
+      <div><dt>0</dt><dd>выдуманных чисел</dd></div>
+      <div><dt>∞</dt><dd>попыток</dd></div>
+    </dl>
+  </div>
+  <div class="hero-figure" data-figure="cradle"></div>
+</section>
+
+<section class="map" id="map">
+  <div class="section-head">
+    <p class="eyebrow">Карта курса</p>
+    <h2>От падающего шара до света в линзе</h2>
+    <p>Каждая глава — один закон и один прибор. Сначала короткая теория, потом опыт своими руками, в конце — вопрос для проверки.</p>
+  </div>
+  <ol class="map-grid">
+    <li><a href="#ch1"><span class="map-num">01</span><span class="map-name">Кинематика</span><span class="map-law">s = at²/2</span><span class="map-tool">Жёлоб Галилея</span></a></li>
+    <li><a href="#ch2"><span class="map-num">02</span><span class="map-name">Динамика</span><span class="map-law">F = ma</span><span class="map-tool">Воздушный трек</span></a></li>
+    <li><a href="#ch3"><span class="map-num">03</span><span class="map-name">Импульс</span><span class="map-law">p = mv</span><span class="map-tool">Маятник Ньютона</span></a></li>
+    <li><a href="#ch4"><span class="map-num">04</span><span class="map-name">Колебания</span><span class="map-law">T = 2π√(m/k)</span><span class="map-tool">Пружинный маятник</span></a></li>
+    <li><a href="#ch5"><span class="map-num">05</span><span class="map-name">Волны</span><span class="map-law">λ = 2L/n</span><span class="map-tool">Опыт Мельде</span></a></li>
+    <li><a href="#ch6"><span class="map-num">06</span><span class="map-name">Термодинамика</span><span class="map-law">pV = νRT</span><span class="map-tool">Цилиндр с поршнем</span></a></li>
+    <li><a href="#ch7"><span class="map-num">07</span><span class="map-name">Электричество</span><span class="map-law">I = U/R</span><span class="map-tool">Цепь с реостатом</span></a></li>
+    <li><a href="#ch8"><span class="map-num">08</span><span class="map-name">Оптика</span><span class="map-law">1/F = 1/d + 1/f</span><span class="map-tool">Оптическая скамья</span></a></li>
+  </ol>
+</section>
+
+<!-- 01 -->
+<section class="chapter" id="ch1">
+  <div class="chapter-head">
+    <span class="chapter-num">01</span>
+    <div>
+      <p class="eyebrow">Кинематика · равноускоренное движение</p>
+      <h2>Почему шар проходит 1, 4, 9, 16</h2>
+    </div>
+  </div>
+  <div class="chapter-body">
+    <div class="chapter-text">
+      <p>В 1604 году Галилей не мог измерить свободное падение — оно слишком быстрое. Тогда он «замедлил» гравитацию: пустил бронзовый шар по наклонному жёлобу. Чем меньше наклон, тем медленнее разгон, но закон движения остаётся тем же.</p>
+      <div class="formula"><span class="f-main">s = <span class="frac"><span>a·t²</span><span>2</span></span></span><span class="f-note">путь растёт как квадрат времени</span></div>
+      <p>Если за первую секунду шар прошёл 1 отрезок, то к концу 2-й секунды — 4, к концу 3-й — 9, к концу 4-й — 16. Ворота на жёлобе стоят именно так: шар проходит их через <b>равные</b> промежутки времени.</p>
+      <div class="formula small"><span class="f-main">a = <span class="frac"><span>5</span><span>7</span></span> g · sin α</span><span class="f-note">для катящегося сплошного шара</span></div>
+      <p>Множитель 5/7 появляется потому, что часть энергии уходит во вращение шара. Скользящий без трения брусок разгонялся бы с ускорением g·sin α.</p>
+      <div class="try">
+        <p class="try-title">Опыт</p>
+        <ol>
+          <li>Нажмите «Пуск» и слушайте глазами: ворота вспыхивают через равные интервалы.</li>
+          <li>Увеличьте угол. Все времена уменьшатся, но отношение 1 : 4 : 9 : 16 сохранится.</li>
+          <li>Сравните: время до последних ворот вдвое больше, чем до вторых.</li>
+        </ol>
+      </div>
+      <div class="quiz" data-quiz="ch1" data-answer="b">
+        <p class="quiz-q">Шар прошёл первые ворота за 0,5 с. Через сколько он пройдёт ворота «9»?</p>
+        <button data-option="a">0,9 с</button><button data-option="b">1,5 с</button><button data-option="c">4,5 с</button>
+        <p class="quiz-why" hidden>Путь ∝ t². Путь в 9 раз больше — значит время больше в √9 = 3 раза: 3 · 0,5 = 1,5 с.</p>
+      </div>
+    </div>
+    <div class="chapter-figure" data-figure="incline"></div>
+  </div>
+</section>
+
+<!-- 02 -->
+<section class="chapter" id="ch2">
+  <div class="chapter-head">
+    <span class="chapter-num">02</span>
+    <div>
+      <p class="eyebrow">Динамика · второй закон Ньютона</p>
+      <h2>Сила разгоняет массу</h2>
+    </div>
+  </div>
+  <div class="chapter-body">
+    <div class="chapter-text">
+      <p>Воздушный трек — это рельс с тысячей крошечных отверстий. Воздух поднимает каретку на тонкой подушке, и трение почти исчезает. Остаётся одна сила: вес грузика на нити, переброшенной через блок.</p>
+      <div class="formula"><span class="f-main">a = <span class="frac"><span>F</span><span>m</span></span> = <span class="frac"><span>m<sub>г</sub> · g</span><span>M + m<sub>г</sub></span></span></span><span class="f-note">одна сила разгоняет обе массы</span></div>
+      <p>Заметьте: грузик тянет не только каретку, но и себя самого. Поэтому в знаменателе — сумма масс. Если повесить грузик тяжелее каретки, ускорение приблизится к g, но никогда его не превысит.</p>
+      <p>Каретка оставляет на треке метки каждые 0,1 с. Расстояния между ними растут на одну и ту же величину a·Δt² — это и есть «подпись» равноускоренного движения.</p>
+      <div class="try">
+        <p class="try-title">Опыт</p>
+        <ol>
+          <li>Выберите массу грузика и нажмите «Пуск».</li>
+          <li>Удвойте массу грузика: ускорение вырастет почти вдвое — но не ровно вдвое. Почему?</li>
+          <li>Посмотрите на метки: шаг между ними растёт равномерно.</li>
+        </ol>
+      </div>
+      <div class="quiz" data-quiz="ch2" data-answer="c">
+        <p class="quiz-q">Каретка M = 0,2 кг, грузик 0,05 кг. Чему равно ускорение?</p>
+        <button data-option="a">2,45 м/с²</button><button data-option="b">9,81 м/с²</button><button data-option="c">1,96 м/с²</button>
+        <p class="quiz-why" hidden>a = 0,05 · 9,81 / (0,2 + 0,05) = 0,49 / 0,25 ≈ 1,96 м/с². Ответ 2,45 забывает, что грузик разгоняет и сам себя.</p>
+      </div>
+    </div>
+    <div class="chapter-figure" data-figure="airtrack"></div>
+  </div>
+</section>
+
+<!-- 03 -->
+<section class="chapter" id="ch3">
+  <div class="chapter-head">
+    <span class="chapter-num">03</span>
+    <div>
+      <p class="eyebrow">Законы сохранения · импульс и энергия</p>
+      <h2>Почему вылетает ровно столько же шаров</h2>
+    </div>
+  </div>
+  <div class="chapter-body">
+    <div class="chapter-text">
+      <p>Импульс — это «количество движения»: масса, умноженная на скорость. В замкнутой системе он не появляется и не исчезает, а только передаётся от тела к телу.</p>
+      <div class="formula"><span class="f-main">Σ m·v = const</span><span class="f-note">закон сохранения импульса</span></div>
+      <p>Почему два шара слева выбивают именно два шара справа, а не один, летящий вдвое быстрее? Импульс сохранился бы в обоих случаях. Но удар стальных шаров почти упругий — сохраняется ещё и энергия:</p>
+      <div class="formula small"><span class="f-main">Σ <span class="frac"><span>m·v²</span><span>2</span></span> = const</span><span class="f-note">энергия ∝ v², поэтому «один вдвое быстрее» несёт вдвое больше энергии</span></div>
+      <p>Оба закона одновременно выполняются только при одном исходе: n шаров на входе — n шаров на выходе, с той же скоростью.</p>
+      <div class="try">
+        <p class="try-title">Опыт</p>
+        <ol>
+          <li>Выберите 2 шара в маятнике в начале страницы или здесь — это один и тот же прибор.</li>
+          <li>Измените угол: скорость у нижней точки v = √(2gL(1 − cos α)).</li>
+        </ol>
+      </div>
+      <div class="quiz" data-quiz="ch3" data-answer="a">
+        <p class="quiz-q">Шар массой 0,26 кг налетает со скоростью 1 м/с. Каков импульс вылетевшего шара?</p>
+        <button data-option="a">0,26 кг·м/с</button><button data-option="b">0,13 кг·м/с</button><button data-option="c">0,52 кг·м/с</button>
+        <p class="quiz-why" hidden>Импульс передаётся полностью: p = 0,26 · 1 = 0,26 кг·м/с. Средние шары лишь передают удар дальше.</p>
+      </div>
+    </div>
+    <div class="chapter-figure" data-figure="cradle"></div>
+  </div>
+</section>
+
+<!-- 04 -->
+<section class="chapter" id="ch4">
+  <div class="chapter-head">
+    <span class="chapter-num">04</span>
+    <div>
+      <p class="eyebrow">Колебания · закон Гука</p>
+      <h2>Пружина считает время</h2>
+    </div>
+  </div>
+  <div class="chapter-body">
+    <div class="chapter-text">
+      <p>Растяните пружину вдвое сильнее — и она потянет назад вдвое сильнее. Эта простая пропорциональность (закон Гука) делает колебания груза на пружине удивительно правильными.</p>
+      <div class="formula"><span class="f-main">F = −k·x</span><span class="f-note">k — жёсткость, x — удлинение</span></div>
+      <div class="formula small"><span class="f-main">T = 2π √<span class="sqrt">m/k</span></span><span class="f-note">период не зависит от размаха!</span></div>
+      <p>Тяжёлый груз сильнее растягивает пружину и колеблется медленнее. Но качните его сильнее или слабее — период останется прежним. На этом свойстве (изохронности) держатся механические часы.</p>
+      <div class="try">
+        <p class="try-title">Опыт</p>
+        <ol>
+          <li>Добавьте разновесы — указатель на линейке покажет новое положение равновесия x = mg/k.</li>
+          <li>Нажмите «Оттянуть»: груз уйдёт на 3 см вниз и начнёт колебаться.</li>
+          <li>Учетверите массу: период вырастет ровно вдвое.</li>
+        </ol>
+      </div>
+      <div class="quiz" data-quiz="ch4" data-answer="b">
+        <p class="quiz-q">Массу груза увеличили в 4 раза. Как изменится период?</p>
+        <button data-option="a">Увеличится в 4 раза</button><button data-option="b">Увеличится в 2 раза</button><button data-option="c">Не изменится</button>
+        <p class="quiz-why" hidden>T ∝ √m. √4 = 2 — период удваивается.</p>
+      </div>
+    </div>
+    <div class="chapter-figure" data-figure="spring"></div>
+  </div>
+</section>
+
+<!-- 05 -->
+<section class="chapter" id="ch5">
+  <div class="chapter-head">
+    <span class="chapter-num">05</span>
+    <div>
+      <p class="eyebrow">Волны · стоячая волна</p>
+      <h2>Струна выбирает свои частоты</h2>
+    </div>
+  </div>
+  <div class="chapter-body">
+    <div class="chapter-text">
+      <p>Вибратор качает конец натянутой нити. Волна бежит к блоку, отражается и возвращается навстречу себе. На большинстве частот волны гасят друг друга, и нить едва дрожит. Но на особых частотах они складываются в <b>стоячую волну</b>.</p>
+      <div class="formula"><span class="f-main">f<sub>n</sub> = n · <span class="frac"><span>v</span><span>2L</span></span></span><span class="f-note">резонанс: на струне укладывается n полуволн</span></div>
+      <div class="formula small"><span class="f-main">v = √<span class="sqrt">T/μ</span></span><span class="f-note">скорость волны: натяжение и масса метра нити</span></div>
+      <p>Точки, которые стоят на месте, — <b>узлы</b>. Между ними — пучности. Так же работают гитара, скрипка и органная труба: каждая струна «умеет» звучать только на своих частотах.</p>
+      <div class="try">
+        <p class="try-title">Опыт</p>
+        <ol>
+          <li>Медленно крутите частоту: нить оживает только около 20, 40, 60, 80 и 100 Гц.</li>
+          <li>Считайте узлы — их на один больше, чем пучностей.</li>
+          <li>Движение замедлено стробоскопом в ~40 раз, иначе его не увидеть.</li>
+        </ol>
+      </div>
+      <div class="quiz" data-quiz="ch5" data-answer="c">
+        <p class="quiz-q">Основная частота струны 20 Гц. На какой частоте появятся 3 пучности?</p>
+        <button data-option="a">23 Гц</button><button data-option="b">40 Гц</button><button data-option="c">60 Гц</button>
+        <p class="quiz-why" hidden>Три пучности — это третья гармоника: f₃ = 3 · 20 = 60 Гц.</p>
+      </div>
+    </div>
+    <div class="chapter-figure" data-figure="melde"></div>
+  </div>
+</section>
+
+<!-- 06 -->
+<section class="chapter" id="ch6">
+  <div class="chapter-head">
+    <span class="chapter-num">06</span>
+    <div>
+      <p class="eyebrow">Термодинамика · закон Гей-Люссака</p>
+      <h2>Тепло поднимает поршень</h2>
+    </div>
+  </div>
+  <div class="chapter-body">
+    <div class="chapter-text">
+      <p>Газ — это рой молекул, которые бьются о стенки. Нагрейте газ, и молекулы полетят быстрее: средняя скорость растёт как √T. Удары станут сильнее и чаще — и газ толкнёт поршень вверх.</p>
+      <div class="formula"><span class="f-main">p·V = ν·R·T</span><span class="f-note">уравнение состояния идеального газа</span></div>
+      <p>Поршень с грузом давит всегда одинаково — давление постоянно. Тогда объём растёт прямо пропорционально абсолютной температуре:</p>
+      <div class="formula small"><span class="f-main"><span class="frac"><span>V</span><span>T</span></span> = const</span><span class="f-note">при p = const (изобарный процесс)</span></div>
+      <p>Важно: температура здесь в кельвинах. Нагрев от 0 °C до 273 °C удваивает T (с 273 K до 546 K) — и удваивает объём.</p>
+      <div class="try">
+        <p class="try-title">Опыт</p>
+        <ol>
+          <li>Поверните регулятор плитки — газ нагревается, молекулы ускоряются.</li>
+          <li>Следите за поршнем: при 273 °C он поднимается ровно вдвое выше, чем при 0 °C.</li>
+          <li>Манометр не двигается — давление задаёт груз на поршне.</li>
+        </ol>
+      </div>
+      <div class="quiz" data-quiz="ch6" data-answer="a">
+        <p class="quiz-q">Газ при 27 °C занимает 1 л. Каким станет объём при 327 °C (p = const)?</p>
+        <button data-option="a">2 л</button><button data-option="b">12 л</button><button data-option="c">1,1 л</button>
+        <p class="quiz-why" hidden>27 °C = 300 K, 327 °C = 600 K. T выросла вдвое — V тоже: 2 л. Ответ 12 л получается, если забыть про кельвины.</p>
+      </div>
+    </div>
+    <div class="chapter-figure" data-figure="piston"></div>
+  </div>
+</section>
+
+<!-- 07 -->
+<section class="chapter" id="ch7">
+  <div class="chapter-head">
+    <span class="chapter-num">07</span>
+    <div>
+      <p class="eyebrow">Электричество · закон Ома</p>
+      <h2>Ток, напряжение, сопротивление</h2>
+    </div>
+  </div>
+  <div class="chapter-body">
+    <div class="chapter-text">
+      <p>Батарея создаёт напряжение — «давление», которое гонит заряды по проводам. Сопротивление мешает им двигаться. Ток — это сколько заряда проходит через сечение за секунду.</p>
+      <div class="formula"><span class="f-main">I = <span class="frac"><span>U</span><span>R</span></span></span><span class="f-note">закон Ома для участка цепи</span></div>
+      <p>Реостат — длинная проволочная катушка с ползунком. Сдвигая ползунок, вы включаете в цепь больше или меньше витков. Сопротивление растёт — ток падает, лампа тускнеет.</p>
+      <div class="formula small"><span class="f-main">P = I²·R</span><span class="f-note">мощность лампы: яркость ∝ квадрату тока</span></div>
+      <div class="try">
+        <p class="try-title">Опыт</p>
+        <ol>
+          <li>Двигайте ползунок реостата и смотрите на стрелку амперметра.</li>
+          <li>Вольтметр подключён параллельно лампе: U<sub>л</sub> = I · R<sub>л</sub>.</li>
+          <li>Бегущие штрихи на проводах — поток зарядов, их скорость ∝ току.</li>
+        </ol>
+      </div>
+      <div class="quiz" data-quiz="ch7" data-answer="b">
+        <p class="quiz-q">Батарея 4,5 В, лампа 5 Ом, реостат 4 Ом. Какой ток в цепи?</p>
+        <button data-option="a">0,9 А</button><button data-option="b">0,5 А</button><button data-option="c">1,1 А</button>
+        <p class="quiz-why" hidden>Сопротивления складываются: R = 5 + 4 = 9 Ом. I = 4,5 / 9 = 0,5 А.</p>
+      </div>
+    </div>
+    <div class="chapter-figure" data-figure="ohm"></div>
+  </div>
+</section>
+
+<!-- 08 -->
+<section class="chapter" id="ch8">
+  <div class="chapter-head">
+    <span class="chapter-num">08</span>
+    <div>
+      <p class="eyebrow">Оптика · собирающая линза</p>
+      <h2>Линза собирает изображение</h2>
+    </div>
+  </div>
+  <div class="chapter-body">
+    <div class="chapter-text">
+      <p>Лучи от каждой точки предмета расходятся во все стороны. Собирающая линза поворачивает их так, что они снова сходятся в одной точке — там, где на экране появляется резкое, перевёрнутое изображение.</p>
+      <div class="formula"><span class="f-main"><span class="frac"><span>1</span><span>F</span></span> = <span class="frac"><span>1</span><span>d</span></span> + <span class="frac"><span>1</span><span>f</span></span></span><span class="f-note">формула тонкой линзы</span></div>
+      <p>Здесь d — расстояние от предмета до линзы, f — от линзы до изображения, F — фокусное расстояние. Увеличение Γ = f/d: чем ближе предмет к фокусу, тем дальше и крупнее изображение.</p>
+      <p>Если поставить предмет ближе фокуса, лучи после линзы расходятся — экран ничего не поймает. Зато глаз увидит прямое увеличенное <b>мнимое</b> изображение: так работает лупа.</p>
+      <div class="try">
+        <p class="try-title">Опыт</p>
+        <ol>
+          <li>Двигайте свечу. Экран сам ищет положение резкого изображения.</li>
+          <li>При d = 2F изображение того же размера: Γ = 1.</li>
+          <li>Подведите свечу ближе F = 10 см — изображение исчезнет с экрана.</li>
+        </ol>
+      </div>
+      <div class="quiz" data-quiz="ch8" data-answer="c">
+        <p class="quiz-q">F = 10 см, предмет на d = 15 см. Где будет изображение?</p>
+        <button data-option="a">6 см</button><button data-option="b">15 см</button><button data-option="c">30 см</button>
+        <p class="quiz-why" hidden>1/f = 1/10 − 1/15 = 1/30, f = 30 см. Изображение увеличено вдвое: Γ = 30/15 = 2.</p>
+      </div>
+    </div>
+    <div class="chapter-figure" data-figure="lens"></div>
+  </div>
+</section>
+
+<section class="finale">
+  <div class="finale-inner">
+    <p class="eyebrow">Шпаргалка</p>
+    <h2>Восемь законов на одной странице</h2>
+    <div class="cheat">
+      <a href="#ch1"><b>s = at²/2</b><span>путь при равноускоренном движении</span></a>
+      <a href="#ch2"><b>F = ma</b><span>второй закон Ньютона</span></a>
+      <a href="#ch3"><b>Σmv = const</b><span>сохранение импульса</span></a>
+      <a href="#ch4"><b>T = 2π√(m/k)</b><span>период пружинного маятника</span></a>
+      <a href="#ch5"><b>fₙ = nv/2L</b><span>резонансы струны</span></a>
+      <a href="#ch6"><b>pV = νRT</b><span>идеальный газ</span></a>
+      <a href="#ch7"><b>I = U/R</b><span>закон Ома</span></a>
+      <a href="#ch8"><b>1/F = 1/d + 1/f</b><span>тонкая линза</span></a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <p>Физика с самого начала · интерактивная лаборатория</p>
+  <p class="footer-dim">Все приборы нарисованы изометрическим набором <a href="https://github.com/wheresryan22/anatomy">Anatomy</a> (MIT). Числа на табло вычисляются той же моделью, что двигает детали.</p>
+</footer>
+
+<script type="module">/*__SCRIPT__*/</script>
+</body>
+</html>
