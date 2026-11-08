@@ -92,7 +92,8 @@
     if (!step.action || !st.targetEl) return;
     setTimeout(() => {
       if (!st.open || STEPS[st.i] !== step) return;
-      const b = st.targetEl.querySelector(`[data-control="${step.action}"]`);
+      const sel = step.action.startsWith("seg:") ? `[data-value="${step.action.slice(4)}"]` : `[data-control="${step.action}"]`;
+      const b = st.targetEl.querySelector(sel);
       if (b) b.click();
     }, 1400);
   }
