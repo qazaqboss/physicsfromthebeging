@@ -60,7 +60,7 @@
   }
 
   const formulaHtml = (f) => `<div class="formula${f.big ? "" : " small"}"><span class="f-main">${f.f}</span><span class="f-note">${f.note || ""}</span></div>`;
-  const badge = (t) => (t.lab3d ? `<span class="tag tag-3d">3D</span>` : t.fig ? `<span class="tag">прибор</span>` : "");
+  const badge = (t) => (t.deep ? `<span class="tag tag-deep">углублённо</span>` : "") + (t.lab3d ? `<span class="tag tag-3d">3D</span>` : t.fig ? `<span class="tag">прибор</span>` : "");
 
   function gradeCard(g) {
     const done = g.topics.filter((t) => solved.has(t.id)).length;
@@ -103,7 +103,7 @@
         <div class="section-head">
           <p class="eyebrow">Карта курса</p>
           <h2>Двенадцать лет физики</h2>
-          <p>Каждый класс — шесть тем. Начальная школа знакомит с природой, основная строит механику, тепло и электричество, старшая — электродинамику и оптику, а профильный класс доходит до теории относительности, квантов и матриц.</p>
+          <p>В каждом классе шесть основных тем, а в старших классах — ещё углублённые. Начальная школа знакомит с природой, основная строит механику, тепло и электричество, старшая — электродинамику и оптику, а профильный класс доходит до теории относительности, квантов и матриц.</p>
         </div>
         ${stages.map((s) => `<div class="stage"><p class="stage-name">${esc(s.name)}</p><div class="grade-grid">${s.grades.map(gradeCard).join("")}</div></div>`).join("")}
       </section>
@@ -152,7 +152,7 @@
         <div class="chapter-head">
           <span class="chapter-num">${t.code}</span>
           <div>
-            <p class="eyebrow">${t.grade.n} класс · ${esc(t.grade.title)}</p>
+            <p class="eyebrow">${t.grade.n} класс · ${esc(t.grade.title)}${t.deep ? " · углублённо" : ""}</p>
             <h2>${esc(t.title)}</h2>
           </div>
         </div>
