@@ -266,3 +266,85 @@ html{-webkit-tap-highlight-color:transparent;overflow-x:hidden}
   body[data-guide] .footer{padding-bottom:260px}
 }
 @media (prefers-reduced-motion:reduce){.guide-ring,.guide-avatar i,.guide-launcher .guide-avatar{animation:none!important}}
+
+/* ---------- курс: карта, класс, тема ---------- */
+#app{outline:none;min-height:70vh}
+.crumbs{display:flex;gap:10px;align-items:center;padding:28px 0 0;font-family:var(--anatomy-mono);font-size:12px;color:var(--anatomy-muted);letter-spacing:.04em}
+.crumbs a{color:var(--anatomy-text);text-decoration:none}
+.crumbs a:hover{color:var(--anatomy-strong)}
+.course-map{padding-top:72px}
+.stage{margin-top:40px}
+.stage-name{font-family:var(--anatomy-mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--anatomy-muted);margin:0 0 14px;display:flex;align-items:center;gap:14px}
+.stage-name::after{content:"";flex:1;height:1px;background:var(--rule)}
+.grade-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--anatomy-mid);box-shadow:0 0 0 1px var(--anatomy-mid)}
+.grade-card{position:relative;display:flex;flex-direction:column;gap:6px;padding:22px 20px 20px;background:var(--anatomy-card);text-decoration:none;min-height:230px;overflow:hidden;transition:background .35s}
+.grade-card:hover{background:var(--anatomy-page)}
+.grade-num{position:absolute;right:14px;top:6px;font-family:"Inter Tight",sans-serif;font-size:84px;font-weight:600;line-height:1;color:transparent;-webkit-text-stroke:1px var(--anatomy-faint);transition:-webkit-text-stroke-color .35s,transform .5s cubic-bezier(.22,1,.36,1)}
+.grade-card:hover .grade-num{-webkit-text-stroke-color:var(--anatomy-mid);transform:translateY(-3px)}
+.grade-meta{font-family:var(--anatomy-mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--anatomy-muted)}
+.grade-title{font-family:"Inter Tight",sans-serif;font-size:21px;font-weight:600;color:var(--anatomy-strong);letter-spacing:-.01em;margin-top:28px;position:relative}
+.grade-blurb{font-size:13.5px;line-height:1.5;color:var(--anatomy-text);position:relative}
+.grade-foot{margin-top:auto;padding-top:14px;display:grid;gap:8px;font-family:var(--anatomy-mono);font-size:11px;color:var(--anatomy-muted)}
+.grade-bar{height:3px;background:var(--rule);border-radius:2px;overflow:hidden}
+.grade-bar i{display:block;height:100%;background:var(--anatomy-green);transition:width .6s}
+.labs-strip{padding:88px 0 24px}
+.labs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.lab-chip{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--anatomy-card);box-shadow:0 0 0 1px var(--anatomy-mid);text-decoration:none;transition:transform .35s cubic-bezier(.22,1,.36,1)}
+.lab-chip:hover{transform:translateY(-2px)}
+.lab-code{font-family:var(--anatomy-mono);font-size:12px;color:var(--anatomy-muted);min-width:2.6em}
+.lab-name{flex:1;color:var(--anatomy-strong);font-weight:500;font-size:14.5px}
+.tag{font-family:var(--anatomy-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:99px;border:1px solid var(--anatomy-mid);color:var(--anatomy-text);white-space:nowrap}
+.tag-3d{background:var(--anatomy-strong);color:var(--anatomy-card);border-color:var(--anatomy-strong)}
+.grade-head{display:flex;gap:28px;align-items:flex-start;padding:40px 0 36px}
+.grade-head h2{font-size:clamp(34px,4.4vw,56px);line-height:1.02}
+.grade-lead{font-size:17px;max-width:38em;margin:14px 0 0}
+.topic-list{list-style:none;margin:0;padding:0;display:grid;gap:1px;background:var(--anatomy-mid);box-shadow:0 0 0 1px var(--anatomy-mid)}
+.topic-list a{display:flex;align-items:center;gap:20px;padding:20px 22px;background:var(--anatomy-card);text-decoration:none;transition:background .3s}
+.topic-list a:hover{background:var(--anatomy-page)}
+.topic-code{font-family:"Inter Tight",sans-serif;font-size:28px;font-weight:600;color:transparent;-webkit-text-stroke:1px var(--anatomy-mid);min-width:2.6em}
+.topic-main{flex:1;display:grid;gap:4px}
+.topic-title{font-family:"Inter Tight",sans-serif;font-size:19px;font-weight:600;color:var(--anatomy-strong)}
+.topic-lead{font-size:14px;color:var(--anatomy-text);line-height:1.5}
+.topic-check{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--anatomy-faint);flex:none}
+.topic-list li[data-done] .topic-check{background:var(--anatomy-green);border-color:var(--anatomy-green);box-shadow:inset 0 0 0 4px var(--anatomy-card)}
+.pager{display:flex;justify-content:space-between;gap:16px;padding:48px 0 24px;flex-wrap:wrap}
+.pager a{font-family:var(--anatomy-mono);font-size:12.5px;color:var(--anatomy-strong);text-decoration:none;padding:12px 18px;border:1px solid var(--rule);border-radius:99px;background:var(--anatomy-card);transition:border-color .3s}
+.pager a:hover{border-color:var(--anatomy-strong)}
+.topic{border-top:0;margin-top:0;padding-top:28px}
+.topic .chapter-num{font-size:clamp(56px,7vw,96px)}
+.topic-lead-p{font-size:18px;color:var(--anatomy-strong);line-height:1.55}
+.chapter-text code{font-family:var(--anatomy-mono);font-size:13px;background:var(--anatomy-card);padding:2px 6px;box-shadow:0 0 0 1px var(--rule);display:inline-block;margin-top:6px}
+.topic-board{padding:44px 32px;background:var(--anatomy-card);box-shadow:0 0 0 1px var(--anatomy-mid);text-align:center;position:relative;overflow:hidden;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px}
+.board-f{font-family:"Inter Tight",sans-serif;font-size:clamp(30px,3.6vw,46px);font-weight:500;color:var(--anatomy-strong);letter-spacing:-.01em;margin:18px 0 6px;line-height:1.15}
+.board-f2{font-size:clamp(22px,2.4vw,30px);margin-top:28px}
+.board-note{font-family:var(--anatomy-mono);font-size:12px;color:var(--anatomy-muted);margin:0}
+.board-hint{font-family:var(--anatomy-mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--anatomy-muted);margin:36px 0 0}
+
+/* ---------- 3D-лаборатории ---------- */
+.lab3d-stage{position:relative}
+.lab3d-canvas{display:block;width:100%;cursor:grab}
+.lab3d-canvas:active{cursor:grabbing}
+.lab3d-drag{position:absolute;left:0;top:0;font-family:var(--anatomy-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--anatomy-muted);transition:opacity .6s;pointer-events:none}
+.lab3d-hud{position:absolute;right:0;top:0;display:grid;gap:8px;justify-items:end;pointer-events:none;font-family:var(--anatomy-mono);font-size:12px;color:var(--anatomy-strong)}
+.lab3d-loading{padding:80px 20px;text-align:center;font-family:var(--anatomy-mono);font-size:12px;color:var(--anatomy-muted);background:var(--anatomy-card);box-shadow:0 0 0 1px var(--anatomy-mid)}
+.mtx{border-collapse:collapse;position:relative;font-variant-numeric:tabular-nums;background:color-mix(in srgb,var(--anatomy-card) 85%,transparent)}
+.mtx td{padding:3px 8px;text-align:right;min-width:3.4em}
+.mtx::before,.mtx::after{content:"";position:absolute;top:0;bottom:0;width:6px;border:1.5px solid var(--anatomy-strong)}
+.mtx::before{left:0;border-right:0}.mtx::after{right:0;border-left:0}
+.mtx.sm td{padding:1px 5px;min-width:1.6em;text-align:center}
+.mtx-wrap{display:flex;align-items:center;gap:8px}
+.mtx-label{color:var(--anatomy-muted);margin-right:4px}
+.mtx-sub{font-size:11px;color:var(--anatomy-muted)}
+.mtx-row{display:flex;gap:12px;align-items:center;font-size:11px}
+.mtx-row>div{display:flex;align-items:center}
+.ket{font-size:13px;background:color-mix(in srgb,var(--anatomy-card) 85%,transparent);padding:2px 4px}
+.prob{display:flex;align-items:center;gap:8px;font-size:11px}
+.prob i{width:110px;height:6px;background:var(--rule);display:block}
+.prob b{display:block;height:100%;background:var(--anatomy-strong);transition:width .2s}
+.lab-check{text-transform:none;letter-spacing:0;font-size:12px}
+@media (max-width:1020px){.grade-grid{grid-template-columns:repeat(2,1fr)}.lab3d-hud{position:static;justify-items:start;margin-top:10px}}
+@media (max-width:560px){.grade-grid{grid-template-columns:1fr}.grade-card{min-height:0}.topic-list a{padding:16px;gap:14px}.topic-code{font-size:22px}.grade-head{gap:16px}.pager a{width:100%;text-align:center}.mtx td{padding:2px 5px;min-width:2.8em}}
+.grade-grid{gap:12px;background:none;box-shadow:none}
+.grade-card{box-shadow:0 0 0 1px var(--anatomy-mid)}
+.iso-plate:has(.lab3d-stage) [data-corner="hint"]{display:none}
+.iso-plate:has(.lab3d-stage) [data-corner="readout"]{max-width:100%}

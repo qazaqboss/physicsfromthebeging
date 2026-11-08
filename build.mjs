@@ -15,11 +15,14 @@ function moduleAsObject(source, name, prelude = "") {
 const kit = moduleAsObject(read("kit/iso-kit.mjs"), "k");
 const lathe = moduleAsObject(read("kit/lathe.mjs"), "G", "const { cameraOf, iso, pathOf } = k;");
 const lib = read("lib.js");
-const figures = readdirSync(join(SRC, "figures")).filter((f) => f.endsWith(".js")).sort().map((f) => `/* ${f} */\n` + read(join("figures", f))).join("\n");
+const dir = (d) => readdirSync(join(SRC, d)).filter((f) => f.endsWith(".js")).sort().map((f) => `/* ${d}/${f} */\n` + read(join(d, f))).join("\n");
+const figures = dir("figures");
+const course = "const COURSE = [];\n" + dir("course");
+const labs = read("lab3d.js") + "\n" + dir("labs3d");
 const site = read("site.js");
 const guideData = existsSync(join(SRC, "guide-data.json")) ? read("guide-data.json") : "{}";
 const guide = `const GUIDE_DATA = ${guideData};\n` + read("guide-steps.js") + "\n" + read("guide.js");
-const script = [kit, lathe, lib, figures, site, guide].join("\n");
+const script = [kit, lathe, lib, figures, course, labs, guide, site].join("\n");
 
 const css = read("kit/iso.css") + "\n" + read("site.css");
 const html = read("index.html")

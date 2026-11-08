@@ -169,6 +169,10 @@ const Lab = {
     let last = 0;
     let visible = false;
     const step = (now) => {
+      if (!stage.isConnected) {
+        frame = 0;
+        return;
+      }
       const dt = last ? Math.min((now - last) / 1000, 1 / 30) : 1 / 60;
       last = now;
       const going = tick(dt, STILL.matches);
