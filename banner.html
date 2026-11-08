@@ -461,6 +461,13 @@ html{-webkit-tap-highlight-color:transparent;overflow-x:hidden}
 .grade-card{box-shadow:0 0 0 1px var(--anatomy-mid)}
 .iso-plate:has(.lab3d-stage) [data-corner="hint"]{display:none}
 .iso-plate:has(.lab3d-stage) [data-corner="readout"]{max-width:100%}
+@media (max-width:560px){
+  .topic-list a{align-items:flex-start}
+  .topic-code{min-width:0;font-size:20px;line-height:1.3}
+  .topic-list .tag{display:none}
+  .topic-check{margin-top:4px}
+  .grade-num{font-size:64px}
+}
 
 html,body{width:1200px;height:630px;overflow:hidden;margin:0}
 body{background-attachment:scroll}
