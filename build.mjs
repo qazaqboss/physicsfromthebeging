@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, readdirSync } from "node:fs";
+import { readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -17,7 +17,9 @@ const lathe = moduleAsObject(read("kit/lathe.mjs"), "G", "const { cameraOf, iso,
 const lib = read("lib.js");
 const figures = readdirSync(join(SRC, "figures")).filter((f) => f.endsWith(".js")).sort().map((f) => `/* ${f} */\n` + read(join("figures", f))).join("\n");
 const site = read("site.js");
-const script = [kit, lathe, lib, figures, site].join("\n");
+const guideData = existsSync(join(SRC, "guide-data.json")) ? read("guide-data.json") : "{}";
+const guide = `const GUIDE_DATA = ${guideData};\n` + read("guide-steps.js") + "\n" + read("guide.js");
+const script = [kit, lathe, lib, figures, site, guide].join("\n");
 
 const css = read("kit/iso.css") + "\n" + read("site.css");
 const html = read("index.html")

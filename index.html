@@ -327,6 +327,78 @@ main{width:min(1240px,100% - 32px);margin:0 auto}
 }
 html{-webkit-tap-highlight-color:transparent;overflow-x:hidden}
 .lab-controls button,.lab-range input,.quiz button{touch-action:manipulation}
+
+/* ---------- голосовой гид ---------- */
+.btn-guide{gap:10px;cursor:pointer;font:inherit;font-weight:500;font-size:15px}
+.guide-avatar{--lvl:0;display:inline-flex;align-items:center;justify-content:center;gap:2px;width:38px;height:38px;border-radius:50%;background:var(--anatomy-strong);flex:none;position:relative}
+.guide-avatar::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:1.5px solid var(--anatomy-strong);opacity:calc(.15 + var(--lvl) * .8);transform:scale(calc(1 + var(--lvl) * .22));transition:transform .08s linear,opacity .08s linear}
+.guide-avatar i{display:block;width:2.5px;border-radius:2px;background:var(--anatomy-card);height:30%;transform-origin:center}
+.guide-avatar i:nth-child(1),.guide-avatar i:nth-child(5){height:22%}
+.guide-avatar i:nth-child(3){height:46%}
+[data-playing] .guide-avatar i,.guide[data-playing] .guide-avatar i{animation:talk .9s ease-in-out infinite}
+.guide-avatar i:nth-child(2){animation-delay:-.2s!important}.guide-avatar i:nth-child(3){animation-delay:-.45s!important}.guide-avatar i:nth-child(4){animation-delay:-.1s!important}.guide-avatar i:nth-child(5){animation-delay:-.6s!important}
+@keyframes talk{0%,100%{transform:scaleY(.7)}50%{transform:scaleY(1.6)}}
+.guide-avatar-sm{width:24px;height:24px;gap:1.5px}
+.guide-avatar-sm i{width:2px}
+.guide-avatar-sm::after{inset:-3px;border-width:1px}
+.guide-avatar-lg{width:44px;height:44px}
+
+.guide-launcher{position:fixed;right:20px;bottom:20px;z-index:40;display:flex;align-items:center;gap:12px;padding:8px 18px 8px 8px;border-radius:99px;border:1px solid var(--rule);background:var(--anatomy-card);color:var(--anatomy-strong);cursor:pointer;font:inherit;box-shadow:0 10px 30px -12px #0005,0 0 0 1px var(--anatomy-mid);transition:transform .5s cubic-bezier(.22,1,.36,1),opacity .4s}
+.guide-launcher:hover{transform:translateY(-2px)}
+.guide-launcher[data-hidden]{transform:translateY(140%);opacity:0;pointer-events:none}
+.guide-launcher-text{display:grid;text-align:left;line-height:1.2}
+.guide-launcher-text b{font-family:"Inter Tight",sans-serif;font-size:15px}
+.guide-launcher-text span{font-family:var(--anatomy-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--anatomy-muted)}
+.guide-launcher .guide-avatar{animation:beckon 3.2s 2s ease-in-out infinite}
+@keyframes beckon{0%,80%,100%{transform:none}86%{transform:scale(1.12)}92%{transform:scale(.96)}}
+
+.guide{position:fixed;right:20px;bottom:20px;z-index:41;width:min(420px,calc(100vw - 32px));background:var(--anatomy-card);box-shadow:0 0 0 1px var(--anatomy-mid),0 30px 60px -24px #0006;padding:16px 18px 14px;opacity:0;transform:translateY(24px) scale(.98);transition:opacity .45s cubic-bezier(.22,1,.36,1),transform .55s cubic-bezier(.22,1,.36,1)}
+.guide[data-in]{opacity:1;transform:none}
+.guide[data-side="left"]{right:auto;left:20px}
+.guide-auto input{accent-color:var(--anatomy-strong);width:15px;height:15px}
+.guide::before{content:"";position:absolute;left:-4px;top:-4px;width:6px;height:6px;border-radius:50%;border:1px solid var(--anatomy-mid);background:var(--anatomy-page)}
+.guide-head{display:flex;align-items:center;gap:12px}
+.guide-who{display:grid;line-height:1.25;min-width:0}
+.guide-who b{font-family:"Inter Tight",sans-serif;font-size:16px;color:var(--anatomy-strong)}
+.guide-who span{font-family:var(--anatomy-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--anatomy-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.guide-count{margin-left:auto;font-family:var(--anatomy-mono);font-size:11.5px;color:var(--anatomy-muted)}
+.guide-x{width:32px;height:32px;border-radius:50%;border:1px solid var(--rule);background:transparent;color:var(--anatomy-text);cursor:pointer}
+.guide-wave{display:flex;align-items:center;gap:3px;height:34px;margin:12px 0 6px}
+.guide-wave i{flex:1;height:100%;border-radius:2px;background:var(--anatomy-strong);opacity:.75;transform:scaleY(.12);transition:transform .07s linear}
+.guide-text{margin:6px 0 10px;font-size:15.5px;line-height:1.6;color:var(--anatomy-muted);max-height:9.6em;overflow:auto;scrollbar-width:thin}
+.guide-text span{transition:color .25s}
+.guide-text span[data-s="said"]{color:var(--anatomy-text)}
+.guide-text span[data-s="now"]{color:var(--anatomy-strong);background:color-mix(in srgb,var(--anatomy-mid) 22%,transparent);border-radius:3px;box-shadow:0 0 0 2px color-mix(in srgb,var(--anatomy-mid) 22%,transparent)}
+.guide-bar{height:2px;background:var(--rule);margin-bottom:12px}
+.guide-bar span{display:block;height:100%;background:var(--anatomy-strong);transform:scaleX(0);transform-origin:left}
+.guide-ctrl{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.guide-btn{width:38px;height:38px;border-radius:50%;border:1px solid var(--anatomy-mid);background:var(--anatomy-card);color:var(--anatomy-strong);font-size:20px;line-height:1;cursor:pointer;display:grid;place-items:center;touch-action:manipulation}
+.guide-btn:disabled{opacity:.35;cursor:default}
+.guide-play{width:46px;height:46px;background:var(--anatomy-strong);border-color:var(--anatomy-strong)}
+.guide-play span{width:0;height:0;border-left:12px solid var(--anatomy-card);border-top:8px solid transparent;border-bottom:8px solid transparent;margin-left:3px}
+.guide[data-playing] .guide-play span{width:12px;height:14px;border:0;margin:0;background:linear-gradient(90deg,var(--anatomy-card) 0 35%,transparent 35% 65%,var(--anatomy-card) 65%)}
+.guide-auto{display:flex;align-items:center;gap:5px;font-family:var(--anatomy-mono);font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--anatomy-muted);cursor:pointer;margin-left:4px}
+.guide-dots{display:flex;gap:4px;margin-left:auto}
+.guide-dots button{width:7px;height:7px;padding:0;border-radius:50%;border:0;background:var(--anatomy-faint);cursor:pointer;transition:all .3s}
+.guide-dots button[data-done]{background:var(--anatomy-mid)}
+.guide-dots button[data-on]{background:var(--anatomy-strong);width:18px;border-radius:4px}
+
+.guide-ring{position:fixed;left:0;top:0;z-index:30;pointer-events:none;border-radius:4px;box-shadow:0 0 0 2px var(--anatomy-strong),0 0 0 9999px color-mix(in srgb,var(--anatomy-page) 38%,transparent);transition:transform .7s cubic-bezier(.22,1,.36,1),width .7s cubic-bezier(.22,1,.36,1),height .7s cubic-bezier(.22,1,.36,1);animation:ringpulse 2.4s ease-in-out infinite}
+@keyframes ringpulse{50%{box-shadow:0 0 0 4px var(--anatomy-strong),0 0 0 9999px color-mix(in srgb,var(--anatomy-page) 38%,transparent)}}
+
+.listen-btn{display:inline-flex;align-items:center;gap:10px;margin-top:16px;padding:6px 16px 6px 6px;border-radius:99px;border:1px solid var(--rule);background:var(--anatomy-card);color:var(--anatomy-strong);font:500 14px/1 Inter,sans-serif;cursor:pointer;transition:border-color .3s,transform .3s}
+.listen-btn:hover{border-color:var(--anatomy-strong);transform:translateY(-1px)}
+
+@media (max-width:560px){
+  .guide{right:0;left:0;bottom:0;width:100%;padding:14px 16px calc(14px + env(safe-area-inset-bottom));border-radius:16px 16px 0 0}
+  .guide::before{display:none}
+  .guide-text{max-height:6.4em;font-size:15px}
+  .guide-launcher{right:12px;bottom:calc(12px + env(safe-area-inset-bottom));padding-right:14px}
+  .guide-launcher-text span{display:none}
+  .guide-dots{display:none}
+  body[data-guide] .footer{padding-bottom:260px}
+}
+@media (prefers-reduced-motion:reduce){.guide-ring,.guide-avatar i,.guide-launcher .guide-avatar{animation:none!important}}
 </style>
 </head>
 <body class="iso" data-theme="light">
@@ -353,7 +425,7 @@ html{-webkit-tap-highlight-color:transparent;overflow-x:hidden}
     <p class="lead">Не картинки со стрелочками, а настоящие приборы на лабораторном столе. Отпускайте шары, крутите ручки, двигайте линзу — и смотрите, как числа на табло следуют за законами природы.</p>
     <div class="hero-cta">
       <a class="btn-primary" href="#ch1">Начать с первого опыта</a>
-      <a class="btn-ghost" href="#map">Карта курса</a>
+      <button type="button" class="btn-ghost btn-guide" data-guide-start><span class="guide-avatar guide-avatar-sm" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>Экскурсия с голосовым гидом</button>
     </div>
     <dl class="hero-stats">
       <div><dt>8</dt><dd>живых приборов</dd></div>
@@ -4461,6 +4533,338 @@ FIG.lens = (el, num) => {
     };
     requestAnimationFrame(step);
   });
+})();
+
+const GUIDE_DATA = {"intro":{"dur":12.8,"words":[0.0,0.78,0.98,1.58,1.68,1.9,2.04,2.54,3.32,3.52,3.9,4.16,4.78,5.0,5.32,6.06,6.36,6.7,7.04,7.78,7.92,8.54,8.8,8.98,9.28,9.67,10.06,10.36,10.92,11.18,11.38,11.68,11.86,12.02,12.36],"env":[0,0,2,7,41,59,41,52,62,81,78,17,2,4,1,0,0,0,17,27,54,88,96,69,63,72,68,57,67,61,50,36,19,3,1,1,14,32,56,52,55,38,23,57,90,6,1,11,80,85,76,37,58,62,68,40,3,47,59,42,52,51,32,6,7,54,52,32,26,37,16,1,7,21,17,8,0,0,0,13,21,16,24,68,64,37,17,7,14,65,65,38,43,36,1,31,60,77,80,80,36,25,25,14,1,78,100,100,88,63,43,4,5,1,1,0,0,0,45,73,39,1,33,72,100,90,42,32,69,73,26,12,37,47,29,1,30,74,81,69,50,38,27,21,10,0,0,1,17,29,65,62,67,58,24,11,44,26,8,55,76,83,43,36,63,67,61,51,53,60,51,27,22,51,56,36,46,95,100,23,6,49,14,3,32,25,6,2,1,1,0,0,10,79,75,15,2,1,100,100,100,34,48,56,59,34,24,23,43,34,65,31,25,25,82,100,100,61,68,31,35,58,34,22,19,27,53,57,12,32,59,29,47,57,64,61,66,64,38,23,30,30,19,7,0,0,0,0,3,15,19,47,79,94,72,36,30,69,71,93,88,83,74,67,64,50,29,11,4,19,15,55,84,62,17,38,57,60,41,59,46,13,36,55,47,39,57,90,98,63,55,53,46,29,26,25,94,100,47,40,12,33,52,44,8,21,42,51,36,45,48,45,20,21,15,2,4,2,0,0]}};
+const GUIDE_STEPS = [
+  {
+    id: "intro",
+    target: ".hero",
+    title: "Знакомство",
+    text: "Привет! Я Лина, твой гид по лаборатории физики. Здесь физику не читают, а трогают руками. Вместе пройдём восемь опытов: от падающего шара до света в линзе. Слушай меня, смотри на приборы и сам крути ручки.",
+  },
+  {
+    id: "map",
+    target: "#map",
+    title: "Карта курса",
+    text: "Вот карта курса. Каждая глава — это один закон природы и один прибор. Сначала короткая теория, потом опыт своими руками, а в конце — вопрос, чтобы проверить себя. Начнём с самого начала.",
+  },
+  {
+    id: "ch1",
+    target: "#ch1 .chapter-figure",
+    action: "go",
+    title: "Жёлоб Галилея",
+    text: "Глава первая — кинематика. Галилей не мог измерить свободное падение, оно слишком быстрое. Поэтому он пустил шар по наклонному жёлобу. Смотри: ворота стоят на расстояниях один, четыре, девять и шестнадцать, а шар проходит их через равные промежутки времени. Значит, путь растёт как квадрат времени.",
+  },
+  {
+    id: "ch2",
+    target: "#ch2 .chapter-figure",
+    action: "go",
+    title: "Воздушный трек",
+    text: "Глава вторая — второй закон Ньютона. Каретка парит на воздушной подушке, и трения почти нет. Её тянет вес маленького грузика. Обрати внимание на точки на треке: каретка ставит их каждую десятую долю секунды, и расстояние между ними растёт равномерно. Попробуй грузик потяжелее — ускорение вырастет.",
+  },
+  {
+    id: "ch3",
+    target: "#ch3 .chapter-figure",
+    action: "go",
+    title: "Маятник Ньютона",
+    text: "Глава третья — импульс. Это маятник Ньютона. Отпусти два шара слева, и справа вылетят ровно два. Почему не один, но вдвое быстрее? Потому что при упругом ударе сохраняются сразу и импульс, и энергия. Оба закона выполняются только при таком исходе.",
+  },
+  {
+    id: "ch4",
+    target: "#ch4 .chapter-figure",
+    action: "pull",
+    title: "Пружинный маятник",
+    text: "Глава четвёртая — колебания. Пружина тянет груз назад тем сильнее, чем больше её растянули. Это закон Гука. Добавь разновесы и оттяни груз. Удивительно, но период колебаний не зависит от размаха — именно поэтому механические часы идут ровно.",
+  },
+  {
+    id: "ch5",
+    target: "#ch5 .chapter-figure",
+    title: "Опыт Мельде",
+    text: "Глава пятая — волны. Вибратор качает конец нити. Медленно крути частоту и следи за нитью: на большинстве частот она едва дрожит, но около двадцати, сорока и шестидесяти герц вдруг появляется стоячая волна. Точки, которые стоят на месте, называются узлами.",
+  },
+  {
+    id: "ch6",
+    target: "#ch6 .chapter-figure",
+    title: "Цилиндр с поршнем",
+    text: "Глава шестая — термодинамика. Включи плитку. Молекулы газа начинают двигаться быстрее, сильнее бьют в поршень и поднимают его. Давление при этом не меняется, его задаёт груз сверху. А объём растёт прямо пропорционально температуре в кельвинах.",
+  },
+  {
+    id: "ch7",
+    target: "#ch7 .chapter-figure",
+    title: "Закон Ома",
+    text: "Глава седьмая — электричество. Двигай ползунок реостата. Чем больше сопротивление, тем меньше ток: стрелка амперметра опускается, а лампа тускнеет. Сила тока равна напряжению, делённому на сопротивление. Это и есть закон Ома.",
+  },
+  {
+    id: "ch8",
+    target: "#ch8 .chapter-figure",
+    title: "Оптическая скамья",
+    text: "Глава восьмая — оптика. Собирающая линза снова сводит лучи от свечи в одну точку, и на экране появляется перевёрнутое изображение. Двигай свечу: экран сам ищет резкость. А если поставить свечу ближе фокуса, изображение на экране исчезнет — так работает лупа.",
+  },
+  {
+    id: "finale",
+    target: ".finale",
+    title: "Финал",
+    text: "Вот и вся лаборатория! Внизу шпаргалка: все восемь законов на одной странице. Возвращайся к любому прибору, отвечай на вопросы и собери все восемь отметок. Удачи, исследователь!",
+  },
+];
+
+(() => {
+  const STEPS = GUIDE_STEPS;
+  const DATA = typeof GUIDE_DATA === "object" ? GUIDE_DATA : {};
+  const BARS = 28;
+  const store = {
+    get(key, fallback) {
+      try {
+        const v = localStorage.getItem(key);
+        return v === null ? fallback : JSON.parse(v);
+      } catch {
+        return fallback;
+      }
+    },
+    set(key, value) {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+      } catch {}
+    },
+  };
+
+  const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  const words = (text) => text.split(/\s+/).filter(Boolean);
+
+  const launcher = document.createElement("button");
+  launcher.type = "button";
+  launcher.className = "guide-launcher";
+  launcher.setAttribute("aria-label", "Голосовой гид");
+  launcher.innerHTML = `<span class="guide-avatar" aria-hidden="true">${'<i></i>'.repeat(5)}</span><span class="guide-launcher-text"><b>Гид Лина</b><span>экскурсия голосом</span></span>`;
+
+  const panel = document.createElement("section");
+  panel.className = "guide";
+  panel.setAttribute("aria-label", "Голосовой гид");
+  panel.hidden = true;
+  panel.innerHTML = `
+    <header class="guide-head">
+      <span class="guide-avatar guide-avatar-lg" aria-hidden="true">${'<i></i>'.repeat(5)}</span>
+      <div class="guide-who"><b>Лина</b><span data-g="where"></span></div>
+      <span class="guide-count" data-g="count"></span>
+      <button type="button" class="guide-x" data-g="close" aria-label="Закрыть гида">✕</button>
+    </header>
+    <div class="guide-wave" aria-hidden="true">${"<i></i>".repeat(BARS)}</div>
+    <p class="guide-text" data-g="text" aria-live="polite"></p>
+    <div class="guide-bar" aria-hidden="true"><span data-g="bar"></span></div>
+    <footer class="guide-ctrl">
+      <button type="button" class="guide-btn" data-g="prev" aria-label="Назад">‹</button>
+      <button type="button" class="guide-btn guide-play" data-g="play" aria-label="Пауза"><span></span></button>
+      <button type="button" class="guide-btn" data-g="next" aria-label="Дальше">›</button>
+      <label class="guide-auto"><input type="checkbox" data-g="auto" checked> авто</label>
+      <div class="guide-dots" data-g="dots">${STEPS.map((s, i) => `<button type="button" data-step="${i}" aria-label="${esc(s.title)}"></button>`).join("")}</div>
+    </footer>`;
+
+  const ring = document.createElement("div");
+  ring.className = "guide-ring";
+  ring.hidden = true;
+
+  document.body.append(ring, launcher, panel);
+  const $ = (name) => panel.querySelector(`[data-g="${name}"]`);
+  const bars = [...panel.querySelectorAll(".guide-wave i")];
+  const avatars = [...document.querySelectorAll(".guide-avatar")];
+  const audio = new Audio();
+  audio.preload = "auto";
+
+  const st = { i: 0, open: false, playing: false, wordEls: [], timings: [], env: [], raf: 0, next: 0, targetEl: null };
+  const auto = $("auto");
+  auto.checked = store.get("guide-auto", true);
+  auto.addEventListener("change", () => store.set("guide-auto", auto.checked));
+
+  function renderText(step) {
+    const list = words(step.text);
+    const d = DATA[step.id] || {};
+    st.timings = d.words && d.words.length === list.length ? d.words : null;
+    st.env = d.env || [];
+    $("text").innerHTML = list.map((w) => `<span>${esc(w)}</span>`).join(" ");
+    st.wordEls = [...$("text").children];
+  }
+
+  function placeRing() {
+    const el = st.targetEl;
+    if (!el || !st.open) {
+      ring.hidden = true;
+      return;
+    }
+    const r = el.getBoundingClientRect();
+    const pad = 10;
+    ring.hidden = false;
+    ring.style.transform = `translate(${r.left - pad}px, ${r.top - pad}px)`;
+    ring.style.width = `${r.width + pad * 2}px`;
+    ring.style.height = `${r.height + pad * 2}px`;
+  }
+
+  function act(step) {
+    if (!step.action || !st.targetEl) return;
+    setTimeout(() => {
+      if (!st.open || STEPS[st.i] !== step) return;
+      const b = st.targetEl.querySelector(`[data-control="${step.action}"]`);
+      if (b) b.click();
+    }, 1400);
+  }
+
+  function go(i, { play = true } = {}) {
+    clearTimeout(st.next);
+    st.i = Math.max(0, Math.min(STEPS.length - 1, i));
+    const step = STEPS[st.i];
+    $("count").textContent = `${st.i + 1} / ${STEPS.length}`;
+    $("where").textContent = step.title;
+    $("dots").querySelectorAll("button").forEach((b, j) => {
+      b.toggleAttribute("data-on", j === st.i);
+      b.toggleAttribute("data-done", j < st.i);
+    });
+    $("prev").disabled = st.i === 0;
+    $("next").disabled = st.i === STEPS.length - 1;
+    renderText(step);
+    st.targetEl = document.querySelector(step.target);
+    st.upto = -2;
+    $("text").scrollTop = 0;
+    if (st.targetEl && innerWidth > 1020) {
+      const r = st.targetEl.getBoundingClientRect();
+      const side = r.width < innerWidth * 0.8 && r.left + r.width / 2 > innerWidth / 2 ? "left" : "right";
+      if (panel.dataset.side !== side) {
+        panel.removeAttribute("data-in");
+        setTimeout(() => {
+          panel.dataset.side = side;
+          panel.setAttribute("data-in", "");
+        }, 260);
+      }
+    }
+    if (st.targetEl) st.targetEl.scrollIntoView({ behavior: STILL.matches ? "auto" : "smooth", block: step.target.includes("figure") ? "center" : "start" });
+    audio.src = `audio/guide/${step.id}.mp3`;
+    audio.currentTime = 0;
+    if (play) {
+      const p = audio.play();
+      if (p && p.catch) p.catch(() => setPlaying(false));
+    }
+    act(step);
+    const nextStep = STEPS[st.i + 1];
+    if (nextStep) {
+      const pre = new Audio();
+      pre.preload = "auto";
+      pre.src = `audio/guide/${nextStep.id}.mp3`;
+    }
+    store.set("guide-step", st.i);
+    tick();
+  }
+
+  function setPlaying(on) {
+    st.playing = on;
+    panel.toggleAttribute("data-playing", on);
+    launcher.toggleAttribute("data-playing", on);
+    $("play").setAttribute("aria-label", on ? "Пауза" : "Слушать");
+  }
+
+  function open(i = store.get("guide-step", 0)) {
+    st.open = true;
+    panel.hidden = false;
+    document.body.setAttribute("data-guide", "");
+    requestAnimationFrame(() => panel.setAttribute("data-in", ""));
+    launcher.setAttribute("data-hidden", "");
+    go(i >= STEPS.length - 1 ? 0 : i);
+  }
+
+  function close() {
+    st.open = false;
+    audio.pause();
+    clearTimeout(st.next);
+    panel.removeAttribute("data-in");
+    document.body.removeAttribute("data-guide");
+    launcher.removeAttribute("data-hidden");
+    ring.hidden = true;
+    setTimeout(() => {
+      if (!st.open) panel.hidden = true;
+    }, 400);
+  }
+
+  function tick() {
+    cancelAnimationFrame(st.raf);
+    const loop = () => {
+      const t = audio.currentTime || 0;
+      const dur = audio.duration || (DATA[STEPS[st.i].id] || {}).dur || 1;
+      $("bar").style.transform = `scaleX(${Math.min(1, t / dur)})`;
+      const n = st.wordEls.length;
+      let upto = -1;
+      if (st.timings) {
+        for (let j = 0; j < n; j++) if (st.timings[j] <= t + 0.05) upto = j;
+      } else {
+        upto = Math.floor((t / dur) * n) - 1;
+      }
+      st.wordEls.forEach((el, j) => {
+        const state = j < upto ? "said" : j === upto ? "now" : "";
+        if (el.dataset.s !== state) el.dataset.s = state;
+      });
+      if (upto !== st.upto) {
+        st.upto = upto;
+        const box = $("text"), el = st.wordEls[upto];
+        if (el && box.scrollHeight > box.clientHeight + 4) {
+          const want = el.offsetTop - box.offsetTop - box.clientHeight * 0.35;
+          box.scrollTo({ top: Math.max(0, want), behavior: STILL.matches ? "auto" : "smooth" });
+        }
+      }
+      const k = Math.floor(t * 25);
+      const level = st.playing && st.env.length ? (st.env[Math.min(k, st.env.length - 1)] || 0) / 100 : 0;
+      bars.forEach((b, j) => {
+        const e = st.playing && st.env.length ? (st.env[Math.max(0, Math.min(st.env.length - 1, k - (BARS - 1 - j)))] || 0) / 100 : 0;
+        b.style.transform = `scaleY(${(0.12 + e * 0.88).toFixed(3)})`;
+      });
+      avatars.forEach((a) => a.style.setProperty("--lvl", level.toFixed(3)));
+      placeRing();
+      if (st.open) st.raf = requestAnimationFrame(loop);
+    };
+    st.raf = requestAnimationFrame(loop);
+  }
+
+  audio.addEventListener("play", () => setPlaying(true));
+  audio.addEventListener("pause", () => setPlaying(false));
+  audio.addEventListener("ended", () => {
+    setPlaying(false);
+    if (auto.checked && st.open && st.i < STEPS.length - 1) st.next = setTimeout(() => go(st.i + 1), 1600);
+  });
+
+  launcher.addEventListener("click", () => open());
+  $("close").addEventListener("click", close);
+  $("prev").addEventListener("click", () => go(st.i - 1));
+  $("next").addEventListener("click", () => go(st.i + 1));
+  $("play").addEventListener("click", () => {
+    if (audio.paused) {
+      if (audio.ended) audio.currentTime = 0;
+      audio.play().catch(() => {});
+    } else audio.pause();
+  });
+  $("dots").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-step]");
+    if (b) go(+b.dataset.step);
+  });
+  document.addEventListener("keydown", (e) => {
+    if (!st.open) return;
+    if (e.key === "Escape") close();
+    if (e.target.closest("input, textarea")) return;
+    if (e.key === "ArrowRight" && e.altKey) go(st.i + 1);
+    if (e.key === "ArrowLeft" && e.altKey) go(st.i - 1);
+  });
+  addEventListener("resize", placeRing, { passive: true });
+
+  document.querySelectorAll("[data-guide-start]").forEach((b) => b.addEventListener("click", (e) => {
+    e.preventDefault();
+    open(0);
+  }));
+  document.querySelectorAll(".chapter").forEach((sec) => {
+    const idx = STEPS.findIndex((s) => s.id === sec.id);
+    if (idx < 0) return;
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "listen-btn";
+    b.innerHTML = `<span class="guide-avatar guide-avatar-sm" aria-hidden="true">${"<i></i>".repeat(5)}</span>Послушать объяснение`;
+    b.addEventListener("click", () => open(idx));
+    sec.querySelector(".chapter-head > div").appendChild(b);
+  });
+  avatars.push(...document.querySelectorAll(".listen-btn .guide-avatar"));
 })();
 </script>
 </body>

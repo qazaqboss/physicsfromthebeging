@@ -49,6 +49,24 @@ src/
 └── kit/              изометрический набор Anatomy (MIT)
 ```
 
+## Голосовой гид
+
+Кнопка «Гид Лина» (и «Экскурсия с голосовым гидом» на первом экране) запускает экскурсию по сайту: Лина рассказывает о каждой главе, страница сама прокручивается к нужному прибору и подсвечивает его, субтитры подсвечиваются слово в слово, а в главах с кнопкой «Пуск» опыт запускается сам. В каждой главе есть кнопка «Послушать объяснение».
+
+Голос сделан движком **OmniVoice** из [VoiceStudio](https://github.com/debpalash/VoiceStudio) (модель `k2-fsa/OmniVoice`, Apache-2.0): сначала голос «спроектирован» по описанию (*female, young adult, moderate pitch*, русский), затем каждая реплика озвучена клонированием этого сохранённого голоса, поэтому он одинаковый во всех главах. Готовые файлы лежат в `audio/guide/*.mp3`, сайт работает без сервера и без сети.
+
+Текст гида — в `src/guide-steps.js`. Чтобы переозвучить после правки (нужны Python 3.11+, `omnivoice` из репозитория VoiceStudio, `faster-whisper`, ffmpeg; модель OmniVoice ~3,2 ГБ, на процессоре ~7 с счёта на 1 с речи):
+
+```sh
+node scripts/voice/steps-json.mjs > steps.json
+python scripts/voice/narrate.py <папка-модели-OmniVoice> steps.json wav            # можно указать id реплик: ch1 ch2
+python scripts/voice/finish.py <папка-faster-whisper> steps.json wav audio/guide src/guide-data.json
+node build.mjs
+```
+
+`scripts/voice/design_voice.py` пересоздаёт сам голос (`scripts/voice/voice-lina.wav`).
+
 ## Благодарности
 
 Приборы построены изометрическим набором [Anatomy](https://github.com/wheresryan22/anatomy) (MIT, © 2026 Ryan). Лицензия набора — в `src/kit/LICENSE`.
+Голос гида синтезирован моделью OmniVoice (k2-fsa, Apache-2.0) через движок [VoiceStudio](https://github.com/debpalash/VoiceStudio).
